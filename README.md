@@ -322,7 +322,7 @@ Releasing
 * Determine the next release version `X.Y.Z` using [semantic versioning](https://semver.org/) based on changes since the last release.
 * Create a tag to mark the release:
 ```
-$ git tag "X.Y.Z"
+$ git tag -a "X.Y.Z" -m "X.Y.Z"
 ```
 * Push the tag to the origin to trigger the release:
 ```
