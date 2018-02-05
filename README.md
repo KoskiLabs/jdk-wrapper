@@ -33,13 +33,15 @@ Quick Start
 
 1) Download `jdk-wrapper.sh` from the [latest release](https://github.com/Koskilabs/jdk-wrapper/releases/latest) script into your project in the directory where you execute your build from (typically the project root directory).
 
-2) Create a `.jdkw` file in the same directory as `jdk-wrapper.sh`.
+2) Make the `jdk-wrapper.sh` executable (e.g. `chmod +x jdk-wrapper.sh`).
 
-3) Populate the `.jdkw` file with contents from the table below. Customize the file contents by referring to the section _Version and Build_ for information on how to discover and specify a particular JDK version.
+3) Create a `.jdkw` file in the same directory as `jdk-wrapper.sh`.
 
-4) Execute your build command by wrapping it: `./jdk-wrapper.sh <BUILD COMMAND>`.
+4) Populate the `.jdkw` file with contents from the table below. Customize the file contents by referring to the section _Version and Build_ for information on how to discover and specify a particular JDK version.
 
-5) Periodically update the contents of your `.jdkw` file to reflect new JDK releases or new releases of JDK Wrapper.
+5) Execute your build command by wrapping it: `./jdk-wrapper.sh <BUILD COMMAND>`.
+
+6) Periodically update the contents of your `.jdkw` file to reflect new JDK releases or new releases of JDK Wrapper.
 
 Distribution | Version             | `.jdkw`
 ------------ | ------------------- | -------

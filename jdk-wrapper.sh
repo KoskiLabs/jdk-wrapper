@@ -29,6 +29,27 @@ log_out() {
   fi
 }
 
+safe_command() {
+  l_command=$1
+  log_out "${l_command}";
+  eval $1
+  l_result=$?
+  if [ "${l_result}" -ne "0" ]; then
+    log_err "ERROR: ${l_command} failed with ${l_result}"
+    exit 1
+  fi
+}
+
+download() {
+  file="$1"
+  if [ ! -f "${JDKW_PATH}/${file}" ]; then
+    jdkw_url="${JDKW_URI}/${file}"
+    log_out "Downloading ${file} from ${jdkw_url}"
+    safe_command "curl ${CURL_OPTIONS} -f -k -L -o \"${JDKW_PATH}/${file}\" \"${jdkw_url}\""
+    safe_command "chmod +x \"${JDKW_PATH}/${file}\""
+  fi
+}
+
 # Default curl options
 CURL_OPTIONS=""
 
@@ -52,16 +73,10 @@ for ARG in "$@"; do
   fi
 done
 
-# Set globals (overriding only support for development and testing)
-if [ -z "${JDKW_BASE_URI}" ]; then
-  JDKW_BASE_URI="https://github.com/koskilabs/jdk-wrapper"
-fi
-if [ -z "${JDKW_IMPL}" ]; then
-  JDKW_IMPL="jdkw-impl.sh"
-fi
-if [ -z "${JDKW_WRAPPER}" ]; then
-  JDKW_WRAPPER="jdk-wrapper.sh"
-fi
+# Globals
+JDKW_BASE_URI="https://github.com/KoskiLabs/jdk-wrapper"
+JDKW_IMPL="jdkw-impl.sh"
+JDKW_WRAPPER="jdk-wrapper.sh"
 
 # Process configuration
 if [ -z "${JDKW_RELEASE}" ]; then
@@ -78,12 +93,12 @@ fi
 
 # Resolve latest version
 if [ "${JDKW_RELEASE}" = "latest" ]; then
-  JDKW_RELEASE=$(curl ${CURL_OPTIONS} -f -k -L 'Accept: application/json' \"${JDKW_BASE_URI}/releases/latest\" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
+  JDKW_RELEASE=$(curl ${CURL_OPTIONS} -f -k -L -H 'Accept: application/json' "${JDKW_BASE_URI}/releases/latest" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
   log_out "Resolved latest version to ${JDKW_RELEASE}"
 fi
 
 # Define source and target
-JDKW_RELEASE="${JDKW_BASE_URI}/releases/download/jdk-wrapper-${JDKW_RELEASE}"
+JDKW_URI="${JDKW_BASE_URI}/releases/download/${JDKW_RELEASE}"
 JDKW_PATH="${JDKW_TARGET}/jdkw/${JDKW_RELEASE}"
 
 # Ensure target directory exists
@@ -93,24 +108,16 @@ if [ ! -d "${JDKW_PATH}" ]; then
 fi
 
 # Download the jdk wrapper version
-if [ ! -f "${JDKW_PATH}/${JDKW_IMPL}" ]; then
-  jdkw_url="${JDKW_RELEASE}/${JDKW_IMPL}"
-  log_out "Downloading JDK Wrapper implementation from ${jdkw_url}"
-  safe_command "curl ${CURL_OPTIONS} -f -k -L -o \"${JDKW_PATH}/${JDKW_IMPL}\" \"${jdkw_url}\""
-fi
-if [ ! -f "${JDKW_PATH}/${JDKW_WRAPPER}" ]; then
-  jdkw_url="${JDKW_RELEASE}/${JDKW_WRAPPER}"
-  log_out "Downloading JDK Wrapper wrapper from ${jdkw_url}"
-  safe_command "curl ${CURL_OPTIONS} -f -k -L -o \"${JDKW_PATH}/${JDKW_WRAPPER}\" \"${jdkw_url}\""
-fi
+download "${JDKW_IMPL}"
+download "${JDKW_WRAPPER}"
 
 # Check whether this wrapper is the one specified for this version
 jdkw_download="${JDKW_PATH}/${JDKW_WRAPPER}"
 jdkw_current="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)/$(basename "$0")"
-if [ $(sha1sum "${jdkw_download}") != $(sha1sum "${jdkw_current}") ]; then
-  printf "\e[0;31m[WARNING]\e[0m Your jdk-wrapper.sh file does not match your JDKW_RELEASE."
-  printf "\e[0;32mUpdate your jdk-wrapper.sh to match by running:\e[0m"
-  printf "cp \"${jdkw_download}\" \"${jdkw_current}\""
+if [ "$(sha1sum "${jdkw_download}")" != "$(sha1sum "${jdkw_current}")" ]; then
+  printf "\e[0;31m[WARNING]\e[0m Your jdk-wrapper.sh file does not match the one in your JDKW_RELEASE.\n"
+  printf "\e[0;32mUpdate your jdk-wrapper.sh to match by running:\e[0m\n"
+  printf "cp \"%s\" \"%s\"\n" "${jdkw_download}" "${jdkw_current}"
 fi
 
 # Execute the provided command
