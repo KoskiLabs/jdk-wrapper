@@ -1,0 +1,317 @@
+jdk-wrapper
+===========
+
+__DISCLAIMER__
+
+_By using this script you agree to the license agreement specified for all
+versions of the Oracle or Zulu JDK you invoke this script for. The author(s)
+assume no responsibility for compliance with the Oracle or Zulu JDK license
+agreement or any other applicable agreements. Please see [LICENSE](LICENSE)
+for additional conditions of use._
+
+<a href="https://raw.githubusercontent.com/Koskilabs/jdk-wrapper/master/LICENSE">
+    <img src="https://img.shields.io/hexpm/l/plug.svg"
+         alt="License: Apache 2">
+</a>
+<a href="https://travis-ci.org/Koskilabs/jdk-wrapper/">
+    <img src="https://travis-ci.org/vjkoskela/jdk-wrapper.png"
+         alt="Travis Build">
+</a>
+<a href="https://github.com/Koskilabs/jdk-wrapper/releases">
+    <img src="https://img.shields.io/github/release/koskilabs/jdk-wrapper.svg"
+         alt="Releases">
+</a>
+<a href="https://github.com/Koskilabs/jdk-wrapper/releases">
+    <img src="https://img.shields.io/github/downloads/koskilabs/jdk-wrapper/total.svg"
+         alt="Downloads">
+</a>
+
+Provides automatic download, unpacking and usage of specific JDK versions to facilitate repeatable zero-prerequisite builds of Java based software.
+
+Quick Start
+-----------
+
+1) Download [jdk-wrapper.sh](https://github.com/koskilabs/jdk-wrapper/releases/download/jdk-wrapper-0.9.0/jdkw-impl.sh) script into your project in the directory where you execute your build from (typically the project root directory).
+
+2) Create a `.jdkw` file in the same directory as `jdk-wrapper.sh`.
+
+3) Populate the `.jdkw` file with contents from the table below.
+
+4) Execute your build command by wrapping it: `./jdk-wrapper.sh <BUILD COMMAND>`.
+
+5) Periodically update the contents of your `.jdkw` file to reflect new JDK releases or new releases of JDK Wrapper.
+
+| Distribution | Version             | sample `.jdkw` file                                  | Source Format                                                                                                           |
+| ------------ | ------------------- | -----------------------------------------------------  ----------------------------------------------------------------------------------------------------------------------- |
+| oracle       | `7u4` to `8u112`    | {{embed 'examples/oracle.7u4-8u112.jdkw'}}           | http://artifactory.example.com/jdk/${JDKW_DIST}/jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}                  |
+| oracle       | `8u121` to `8u162`  | {{embed 'examples/oracle.8u121-8u162.jdkw'}}         | http://artifactory.example.com/jdk/${JDKW_DIST}/jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}                  |
+| oracle       | `9.0.1`             | {{embed 'examples/oracle.9.0.1.jdkw'}}               | http://artifactory.example.com/jdk/${JDKW_DIST}/jdk-${JDKW_VERSION}_${JDKW_PLATFORM}_bin.${JDKW_EXTENSION}              |
+| oracle       | `9.0.4` to current  | {{embed 'examples/oracle.9.0.4-current.jdkw'}}       | http://artifactory.example.com/jdk/${JDKW_DIST}/jdk-${JDKW_VERSION}_${JDKW_PLATFORM}_bin.${JDKW_EXTENSION}              |
+| zulu         | any available       | {{embed 'examples/zulu.any.jdkw'}}                   | http://artifactory.example.com/jdk/${JDKW_DIST}/zulu${JDKW_BUILD}-jdk${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION} |
+
+Refer to the section _Version and Build_ for information on how to discover and specify a particular JDK version.
+
+The source format column shows how you can layout a organization wide repository for JDKs and the corresponding value for `JDKW_SOURCE`
+without having to rename the files provided by Oracle and Zulu. More information on this below in the _Shared Repository_ section.
+
+Usage
+-----
+
+Simply set your desired JDK version and wrap your command relying on the JDK with a call to the `jdk-wrapper.sh` script.
+
+    > JDKW_DIST=oracle JDKW_VERSION=8u121 JDKW_BUILD=b13 JDKW_TOKEN=e9e7ea248e2c4826b92b3f075a80e441 ./jdk-wrapper.sh <CMD>
+
+Instead of passing these environment variables on the command line you can set them in your session.
+
+    > export JDKW_DIST=oracle
+    > export JDKW_VERSION=8u121
+    > export JDKW_BUILD=b13
+    > export JDKW_TOKEN=e9e7ea248e2c4826b92b3f075a80e441
+    > ./jdk-wrapper.sh <CMD>
+
+You can also configure values with a `.jdkw` properties file in your home directory.
+
+```
+JDKW_DIST=oracle
+JDKW_VERSION=8u121
+JDKW_BUILD=b13
+JDKW_TOKEN=e9e7ea248e2c4826b92b3f075a80e441
+```
+
+Alternatively, create a `.jdkw` properties file in the working directory for per-project configuration (recommended).
+
+```
+JDKW_DIST=oracle
+JDKW_VERSION=8u131
+JDKW_BUILD=b11
+JDKW_TOKEN=d54c1d3a095b4ff2b6607d096fa80163
+```
+
+Then execute `jdk-wrapper.sh` script passing in your command and its arguments.
+
+    > ./jdk-wrapper.sh <CMD>
+
+The third option is to pass arguments to `jdk-wrapper.sh` which define the configuration. Any argument that begins with `JDKW_` will be
+considered a configuration parameter, everything starting from the first non-configuration parameter onward is considered part of the command.
+
+    > ./jdk-wrapper.sh JDKW_VERSION=0.9.0 JDKW_DIST=oracle JDKW_VERSION=8u121 JDKW_BUILD=b13 JDKW_TOKEN=e9e7ea248e2c4826b92b3f075a80e441 <CMD>
+
+Finally, any combination of these four forms of configuration is permissible. The order of precedence for configuration from highest to lowest is:
+
+1) Command Line
+2) .jdkw (working directory)
+3) ~/.jdkw (home directory)
+4) Environment
+
+The wrapper script will download and cache the specified JDK version and set `JAVA_HOME` appropriately before executing the specified command.
+
+### Configuration
+
+Regardless of how the configuration is specified it supports the following:
+
+* JDKW_DIST : Distribution type (e.g. oracle, zulu). Required.
+* JDKW_VERSION : Version identifier (e.g. '8u65'). Required.
+* JDKW_BUILD : Build identifier (e.g. 'b17'). Required.
+* JDKW_TOKEN : Download token (e.g. e9e7ea248e2c4826b92b3f075a80e441). Optional.
+* JDKW_RELEASE : Version of JDK Wrapper (e.g. 0.9.0 or latest). Optional.
+* JDKW_JCE : Include Java Cryptographic Extensions (e.g. false). Optional.
+* JDKW_TARGET : Target directory (e.g. '/var/tmp'). Optional.
+* JDKW_PLATFORM : Platform specifier (e.g. 'linux-x64'). Optional.
+* JDKW_EXTENSION : Archive extension (e.g. 'tar.gz'). Optional.
+* JDKW_SOURCE : Source url format for download. Optional.
+* JDKW_USERNAME: Username for OTN sign-on. Optional.
+* JDKW_PASSWORD: Password for OTN sign-on. Optional.
+* JDKW_VERBOSE : Log wrapper actions to standard out. Optional.
+
+The default JDK Wrapper release is `latest`.<br/>
+The default target directory is `~/.jdk`.<br/>
+The default platform is detected using `uname`.<br/>
+By default the Java Cryptographic Extensions are included*.<br/>
+By default the extension depends on the distribution type.<br/>
+* `dmg` is used for Darwin (MacOS)
+* `tar.gz` is used for Linux/Solaris
+By default the source url is from the distribution type provider.<br/>
+By default the wrapper does not log.
+
+NOTE: As of JDK version 9 the Java Cryptographic Extensions are bundled with the
+JDK and are not downloaded separately. Therefore, the value of JDKW_JCE is
+ignored for JDK 9. The `JDKW_JCE` flag only applies if `JDKW_DIST` is oracle.
+
+**IMPORTANT**: The `JDKW_TOKEN` is required for oracle release 8u121-b13 and newer
+except it is not required for oracle release JDK 9.0.1 but is required for
+other JDK 9 releases (as of 2/4/18). `JDKW_TOKEN` does not apply to zulu.
+
+### Version and Build
+
+#### Oracle
+
+The desired version and build of the Oracle JDK may be determined as follows:
+
+* Browse to the [Java SE Downloads](http://www.oracle.com/technetwork/java/javase/downloads/index.html) page.
+* Click the "JDK Download" button on the right.
+* Locate the desired version.
+* Accept the associated license agreement.
+* Hover over one of the download links.
+
+This page only contains the _latest_ versions. Archived versions can be found here:
+
+Archived versions of JDK9 are [listed here](http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase9-3934878.html).
+Archived versions of JDK8 are [listed here](http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html).
+Archived versions of JDK7 are [listed here](http://www.oracle.com/technetwork/java/javase/downloads/java-archive-downloads-javase7-521261.html).
+
+However, these pages require an OTN account to access and to use this script with. Please see _Oracle Technology Network_ at the end of this
+document for details.
+
+All the links for JDK 7 and JDK 8 contain a path element named `{MAJOR}u{MINOR}-{BUILD}`, for example `8u73-b02` where `8u73` would be used
+as the value for `JDKW_VERSION` and `b02` the value for `JDKW_BUILD`. For versions `8u121-b13` and higher, the link contains an alpha-numeric
+path segment that looks like `e9e7ea248e2c4826b92b3f075a80e441` which needs to be set as the `JDKW_TOKEN`.
+
+However, Oracle changed their conventions again with JDK 9. For versions `9.0.1` and higher, the path element is named the `{X}.{Y}.{Z}+{BUILD}`,
+for example `9.0.1+11` where `9.0.1` would be used as the value for `JDKW_VERSION` and `11` the value for `JDKW_BUILD`. Also, `JDKW_TOKEN` was
+not needed for `9.0.1` but is required for `9.0.4` and newer.
+
+#### Zulu
+
+The desired version of the build of the Zulu (aka Open) JDK may be determined as follows:
+
+* Browse to one of [Mac Downoads](https://www.azul.com/downloads/zulu/zulu-mac/) or [Linux Downloads](https://www.azul.com/downloads/zulu/zulu-linux/)
+* Locate the desired version.
+* Hover over one of the download links.
+
+All the links contain a path element named `zulu{X}.{Y}.{Z}.{W}-jdk{A}.{B}.{C}`, for example `zulu8.25.0.3-jdk8.0.153` where `8.0.153` would
+be used as the value for `JDKW_VERSION` and `8.25.0.3` the value for `JDKW_BUILD`.
+
+### Caching
+
+The JDK versions specified over all invocations of the JDK Wrapper script are cached in the directory specified by `JDKW_TARGET`
+variable in perpetuity. It is recommended that you purge the cache periodically to prevent it from growing unbounded.
+
+### Travis
+
+There are three changes necessary to use the `jdk-wrapper.sh` script in your Travis build. First, ensure that the `JDKW_TARGET` is configured as a cache directory:
+
+```yml
+cache:
+  directories:
+  - $HOME/.jdk
+```
+
+Second, if your project does not use `.jdkw` file then configure the `JDKW_VERSION` and `JDKW_BUILD` environment variables to specify the JDK to use:
+
+```yml
+env:
+  global:
+  - JDKW_DIST=oracle
+  - JDKW_VERSION=8u121
+  - JDKW_BUILD=b13
+  - JDKW_TOKEN=e9e7ea248e2c4826b92b3f075a80e441
+```
+
+To create a matrix build against multiple versions of the JDK simply specify the environment variables like this:
+
+```yml
+env:
+  - JDKW_DIST=oracle JDKW_VERSION=7u79 JDKW_BUILD=b15
+  - JDKW_DIST=oracle JDKW_VERSION=8u121 JDKW_BUILD=b13 JDKW_TOKEN=e9e7ea248e2c4826b92b3f075a80e441
+```
+
+Remember you can omit fields like `JDKW_VERSION` and `JDKW_DIST` if you have a `.jdkw` file which defines them. Finally, invoke your build
+command using the JDK Wrapper script. The following assumes you have downloaded and included `jdk-wrapper.sh` in your project.
+
+```yml
+script:
+- ./jdk-wrapper.sh mvn install
+```
+
+Alternatively, you may download the _latest_ (possibly unreleased) version and execute it as follows (however, this is __not__ recommended):
+
+```yml
+script:
+- curl -s https://raw.githubusercontent.com/koskilabs/jdk-wrapper/master/jdkw-impl.sh | bash /dev/stdin mvn install
+```
+
+If your repository contains a `.jdkw` properties file it is __not__ sufficient to set the environment variables to create a matrix build
+because the `.jdkw` properties file will override the environment variables. Instead you must set the environment variables and then pass
+them as arguments to `jdk-wrapper.sh` because arguments have higher precedence than the `.jdkw` file as follows:
+ 
+```yml
+script:
+- ./jdk-wrapper.sh JDKW_DIST=oracle JDKW_VERSION=${JDKW_VERSION} JDKW_BUILD=${JDKW_BUILD} JDKW_TOKEN=${JDKW_TOKEN} mvn install
+```
+
+This is most commonly the case when you have a JDK version that you develop against (typically the latest) specified in `.jdkw` but desire a
+build which validates against multiple (older) JDK versions.
+
+### Shared Repository
+
+If you are part of an organization, it may be beneficial to download and store the JDK versions your team uses to a shared location and to
+distribute from this location to individual team members via JDK Wrapper. Often this reduces latency and bandwidth consumption as well as
+ensuring that your team has the desired version of the JDK available even if it is not available upstream. You can do this by configuring the
+`JDKW_SOURCE` parameter in your `.jdkw` file to define the url pattern for your repository. The table in the _Quick Start_ section shows
+different values depending on the JDK distribution and version that would keep each distribution's file naming scheme.
+
+One or more persons in your organization would be responsible for downloading new versions of the JDK from the desired vendor(s) and uploading
+these to your repository. Once available, others can consume them from your repository. This strategy is particularly useful for archived Oracle
+packages which require an OTN account to download (see _Oracle Technology Network_ below). Specifically, it may be less desirable to either
+require that all the members of your organization have OTN accounts or to distribute and manage shared OTN credentials. In fact, such strategies
+may even be contrary to the OTN or other Oracle terms of service (adherence to which **you** and **your organization** are solely responsible for).
+
+Prerequisites
+-------------
+
+The jdk-wrapper script may work with other versions or with suitable replacements but has been tested with these:
+
+* posix shell: bash (4.4.12), BusyBox (1.25.1)
+* awk (4.1.4)
+* curl (7.51.0)
+* grep (3.0)
+* sed (4.4)
+* sort (8.27)
+* sha1sum (8.27) or md5
+
+Plus tools for extracting files from the target archive type (e.g. tar.gz, dmg, etc.) such as gzip, tar or xar (for example).
+
+Oracle Technology Network
+-------------------------
+
+**IMPORTANT**: Sometime in May 2017 Oracle started requiring an Oracle Technology Network (OTN) account for downloading anything but the latest
+JDK version. To work around this either:
+
+ 1) Manually download and cache the JDKs elsewhere (e.g. Artifactory, Nexus, S3, etc.) and use the `JDKW_SOURCE` to specify the location. For example:
+
+    > JDKW_SOURCE='http://artifactory.example.com/jdk/${JDKW_DIST}/jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}' JDKW_DIST=oracle JDKW_VERSION=8u121 JDKW_BUILD=b13 jdk-wrapper.sh <CMD>
+
+Take care with this option since the Oracle JDK archive naming convention can change between versions (e.g. from 8 to 9).
+
+ 2) Specify OTN credentials by using the `JDKW_USERNAME` and `JDKW_PASSWORD` arguments. For example:
+
+    > JDKW_USERNAME=me@example.com JDKW_PASSWORD=secret JDKW_DIST=oracle JDKW_VERSION=8u121 JDKW_BUILD=b13 jdk-wrapper.sh <CMD>
+
+The command above is for illustrative purposes only. You should never write your password out as part of a JDK Wrapper command. Instead store
+your OTN credentials in `~/.jdkw`.
+
+ 3) Switch from Oracle JDK to Open JDK and never deal with this problem again. For example:
+
+    > JDKW_DIST=zulu JDKW_BUILD=8.25.0.1 JDKW_VERSION=8.0.152 jdk-wrapper.sh <CMD>
+
+If the JDK is not found in the local cache, then an attempt is made to download it from the user specified source if provided. If that attempt fails or is skipped,
+the next attempt uses the publicly available endpoint at Oracle (where only the latest version is available). If that attempt fails, the final step uses
+the OTN credentials to login and attempt download via the secure OTN endpoint at Oracle if credentials were provided.
+
+You will likely want developers (or some subset of developers) using the OTN login version via the __.jdkw__ file in their home directory (e.g. for testing
+JDK upgrades before making them available) while other developers and headless builds (e.g. Jenkins, Travis, Code Build, etc.) use your private cloud/on-prem cached version. As with
+any use of this script **you** are responsible for compliance with the Oracle JDK (or any other provider) license agreement(s) and the OTN end user license agreement if applicable
+as well as any other agreements to which you are bound.
+
+Releasing
+---------
+
+<TODO>
+
+License
+-------
+
+Published under Apache Software License 2.0, see LICENSE
+
+&copy; Ville Koskela, 2018
+
