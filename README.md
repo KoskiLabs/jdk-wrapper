@@ -41,18 +41,15 @@ Quick Start
 
 5) Periodically update the contents of your `.jdkw` file to reflect new JDK releases or new releases of JDK Wrapper.
 
-| Distribution | Version             | sample `.jdkw` file                                  | Source Format                                                                                                           |
-| ------------ | ------------------- | -----------------------------------------------------  ----------------------------------------------------------------------------------------------------------------------- |
-| oracle       | `7u4` to `8u112`    | {{embed 'examples/oracle.7u4-8u112.jdkw'}}           | http://artifactory.example.com/jdk/${JDKW_DIST}/jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}                  |
-| oracle       | `8u121` to `8u162`  | {{embed 'examples/oracle.8u121-8u162.jdkw'}}         | http://artifactory.example.com/jdk/${JDKW_DIST}/jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}                  |
-| oracle       | `9.0.1`             | {{embed 'examples/oracle.9.0.1.jdkw'}}               | http://artifactory.example.com/jdk/${JDKW_DIST}/jdk-${JDKW_VERSION}_${JDKW_PLATFORM}_bin.${JDKW_EXTENSION}              |
-| oracle       | `9.0.4` to current  | {{embed 'examples/oracle.9.0.4-current.jdkw'}}       | http://artifactory.example.com/jdk/${JDKW_DIST}/jdk-${JDKW_VERSION}_${JDKW_PLATFORM}_bin.${JDKW_EXTENSION}              |
-| zulu         | any available       | {{embed 'examples/zulu.any.jdkw'}}                   | http://artifactory.example.com/jdk/${JDKW_DIST}/zulu${JDKW_BUILD}-jdk${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION} |
+Distribution | Version | `.jdkw`
+------------ | ------- | -------
+oracle       | `7u4` to `8u112`    | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.7u4-8u112.jdkw)
+oracle       | `8u121` to `8u162`  | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.8u121-8u162.jdkw)
+oracle       | `9.0.1`             | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.9.0.1.jdkw)
+oracle       | `9.0.4` to current  | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.9.0.4-current.jdkw)
+zulu         | any available       | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/zulu.any.jdkw)
 
 Refer to the section _Version and Build_ for information on how to discover and specify a particular JDK version.
-
-The source format column shows how you can layout a organization wide repository for JDKs and the corresponding value for `JDKW_SOURCE`
-without having to rename the files provided by Oracle and Zulu. More information on this below in the _Shared Repository_ section.
 
 Usage
 -----
@@ -233,7 +230,7 @@ script:
 If your repository contains a `.jdkw` properties file it is __not__ sufficient to set the environment variables to create a matrix build
 because the `.jdkw` properties file will override the environment variables. Instead you must set the environment variables and then pass
 them as arguments to `jdk-wrapper.sh` because arguments have higher precedence than the `.jdkw` file as follows:
- 
+
 ```yml
 script:
 - ./jdk-wrapper.sh JDKW_DIST=oracle JDKW_VERSION=${JDKW_VERSION} JDKW_BUILD=${JDKW_BUILD} JDKW_TOKEN=${JDKW_TOKEN} mvn install
@@ -246,15 +243,31 @@ build which validates against multiple (older) JDK versions.
 
 If you are part of an organization, it may be beneficial to download and store the JDK versions your team uses to a shared location and to
 distribute from this location to individual team members via JDK Wrapper. Often this reduces latency and bandwidth consumption as well as
-ensuring that your team has the desired version of the JDK available even if it is not available upstream. You can do this by configuring the
-`JDKW_SOURCE` parameter in your `.jdkw` file to define the url pattern for your repository. The table in the _Quick Start_ section shows
-different values depending on the JDK distribution and version that would keep each distribution's file naming scheme.
+ensuring that your team has the desired version of the JDK available even if it is no longer available upstream. You can do this by configuring the
+`JDKW_SOURCE` parameter in your `.jdkw` file to define the url pattern for your repository.
 
 One or more persons in your organization would be responsible for downloading new versions of the JDK from the desired vendor(s) and uploading
 these to your repository. Once available, others can consume them from your repository. This strategy is particularly useful for archived Oracle
 packages which require an OTN account to download (see _Oracle Technology Network_ below). Specifically, it may be less desirable to either
 require that all the members of your organization have OTN accounts or to distribute and manage shared OTN credentials. In fact, such strategies
 may even be contrary to the OTN or other Oracle terms of service (adherence to which **you** and **your organization** are solely responsible for).
+
+To avoid renaming the artifacts from Oracle and Zulu here example `JDKW_SOURCE` values for different versions:
+
+Oracle JDK 7 and JDK 8:
+```
+http://artifactory.example.com/jdk/${JDKW_DIST}/jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}
+```
+
+Oracle JDK 9:
+```
+http://artifactory.example.com/jdk/${JDKW_DIST}/jdk-${JDKW_VERSION}_${JDKW_PLATFORM}_bin.${JDKW_EXTENSION}
+```
+
+Zulu:
+```
+http://artifactory.example.com/jdk/${JDKW_DIST}/zulu${JDKW_BUILD}-jdk${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}
+```
 
 Prerequisites
 -------------

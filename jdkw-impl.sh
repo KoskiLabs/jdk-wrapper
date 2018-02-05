@@ -14,10 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Please refer to README.md or jdkw-wrapper.sh in the JDK Wrapper project
-# on Github for usage instructions and additional terms of use.
-#
-# https://github.com/KoskiLabs/jdk-wrapper
+# For documentation please refer to:
+# https://github.com/KoskiLabs/jdk-wrapper/blob/master/README.md
 
 log_err() {
   l_prefix=$(date  +'%H:%M:%S')

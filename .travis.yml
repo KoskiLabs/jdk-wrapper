@@ -17,11 +17,8 @@ env:
   - secure: dJ5tf+wSsoUM0PfPywJzR92fwCAEeY3IxOpYdJlc+jYSJhh5ZBTegqIFQG+kRN5anxSW6RTclY4+Ic5OUWEbH+XueqlWGttjXZ1xvInu+mUPPYfKdYl1zsZrRVy/jaQSXpJ1ZX9cjpuLVyGd2evyb7UleW3vXw2dwgncy5R2T67aLPi/k1v3tSoIAhrNOHsnW8MBT9YQEDbuLP+PHPIH+sClYnmRUQ7Af/jhcfrqI03d+xdu8XyWed1zN/v0juUrBW9BRtpof2rlC6c2hSBhciHKqDDNvAGacOE8c3gUcxlPaC8+aRgLdRQ2VlVe15iCXbod32Wnsg/CckW8ZrgW59dyAKz+dXoV315BkwEahCQsck3lfdRBlBGRIlkJw0OkSjPemywv3POtVMdsX1KNzG27n1yZQzJ/fZWHiSXzYGjCFFBqFRqtzIM3bOS4CpqLWBrjHjDAGhdhQPFFgO6AXCcbio9ueif6x7pr+JIXp1G1PtLGtyRwywLKFVZ6hllgodTy0StmYdLmszTvI//O6sdpIrz5nUa0+Yl4T37+xi3YlNkHCByu8TedgtTbWNAB9tURFV8xgznkXOjXbEVyKKetunAXpkEyd5FQk+a0hQO7X+3StIfUmRUAItOyQ6xg8HLL/h0hT8EZD+v3ENrhUopA2Vmi4rEVI1/lzX0Mk7w=
 install: true
 script:
-- ./jdkw-impl.sh JDKW_VERBOSE=1 JDKW_DIST=${JDKW_DIST} JDKW_VERSION=${JDKW_VERSION}
-  JDKW_BUILD=${JDKW_BUILD} JDKW_TOKEN=${JDKW_TOKEN} javac -version
-- if [ "$(./jdkw-impl.sh JDKW_VERSION=${JDKW_VERSION} JDKW_BUILD=${JDKW_BUILD} JDKW_TOKEN=${JDKW_TOKEN}
-  javac -version 2>&1 | tail -n 1)" != "javac ${EXPECTED_VERSION}" ]; then exit 1;
-  fi;
+- ./jdkw-impl.sh JDKW_VERBOSE=1 JDKW_DIST=${JDKW_DIST} JDKW_VERSION=${JDKW_VERSION} JDKW_BUILD=${JDKW_BUILD} JDKW_TOKEN=${JDKW_TOKEN} javac -version
+- if [ "$(./jdkw-impl.sh JDKW_DIST=${JDKW_DIST} JDKW_VERSION=${JDKW_VERSION} JDKW_BUILD=${JDKW_BUILD} JDKW_TOKEN=${JDKW_TOKEN} javac -version 2>&1 | tail -n 1)" != "javac ${EXPECTED_VERSION}" ]; then exit 1; fi;
 deploy:
   provider: releases
   api_key:
