@@ -31,25 +31,23 @@ Provides automatic download, unpacking and usage of specific JDK versions to fac
 Quick Start
 -----------
 
-1) Download [jdk-wrapper.sh](https://github.com/koskilabs/jdk-wrapper/releases/download/jdk-wrapper-0.9.0/jdkw-impl.sh) script into your project in the directory where you execute your build from (typically the project root directory).
+1) Download `jdk-wrapper.sh` from the [latest release](https://github.com/Koskilabs/jdk-wrapper/releases/latest) script into your project in the directory where you execute your build from (typically the project root directory).
 
 2) Create a `.jdkw` file in the same directory as `jdk-wrapper.sh`.
 
-3) Populate the `.jdkw` file with contents from the table below.
+3) Populate the `.jdkw` file with contents from the table below. Customize the file contents by referring to the section _Version and Build_ for information on how to discover and specify a particular JDK version.
 
 4) Execute your build command by wrapping it: `./jdk-wrapper.sh <BUILD COMMAND>`.
 
 5) Periodically update the contents of your `.jdkw` file to reflect new JDK releases or new releases of JDK Wrapper.
 
-Distribution | Version | `.jdkw`
------------- | ------- | -------
+Distribution | Version             | `.jdkw`
+------------ | ------------------- | -------
 oracle       | `7u4` to `8u112`    | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.7u4-8u112.jdkw)
 oracle       | `8u121` to `8u162`  | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.8u121-8u162.jdkw)
 oracle       | `9.0.1`             | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.9.0.1.jdkw)
 oracle       | `9.0.4` to current  | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.9.0.4-current.jdkw)
 zulu         | any available       | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/zulu.any.jdkw)
-
-Refer to the section _Version and Build_ for information on how to discover and specify a particular JDK version.
 
 Usage
 -----
@@ -319,7 +317,16 @@ as well as any other agreements to which you are bound.
 Releasing
 ---------
 
-<TODO>
+* Determine the next release version `X.Y.Z` using [semantic versioning](https://semver.org/) based on changes since the last release.
+* Create a tag to mark the release:
+```
+$ git tag "X.Y.Z"
+```
+* Push the tag to the origin to trigger the release:
+```
+$ git push origin --tags
+```
+* Verify the release was created in [Github](https://github.com/KoskiLabs/jdk-wrapper/releases)
 
 License
 -------
