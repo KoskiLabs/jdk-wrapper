@@ -61,7 +61,7 @@ rand() {
   awk 'BEGIN {srand();printf "%d\n", (rand() * 10^8);}'
 }
 
-download() {
+download_if_needed() {
   file="$1"
   if [ ! -f "${JDKW_PATH}/${file}" ]; then
     jdkw_url="${JDKW_URI}/${file}"
@@ -132,8 +132,8 @@ if [ ! -d "${JDKW_PATH}" ]; then
 fi
 
 # Download the jdk wrapper version
-download "${JDKW_IMPL}"
-download "${JDKW_WRAPPER}"
+download_if_needed "${JDKW_IMPL}"
+download_if_needed "${JDKW_WRAPPER}"
 
 # Check whether this wrapper is the one specified for this version
 jdkw_download="${JDKW_PATH}/${JDKW_WRAPPER}"

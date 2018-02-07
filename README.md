@@ -252,7 +252,7 @@ packages which require an OTN account to download (see _Oracle Technology Networ
 require that all the members of your organization have OTN accounts or to distribute and manage shared OTN credentials. In fact, such strategies
 may even be contrary to the OTN or other Oracle terms of service (adherence to which **you** and **your organization** are solely responsible for).
 
-To avoid renaming the artifacts from Oracle and Zulu here example `JDKW_SOURCE` values for different versions:
+To avoid renaming the artifacts from Oracle and Zulu here are example `JDKW_SOURCE` values for different versions:
 
 Oracle JDK 7 and JDK 8:
 ```
@@ -269,6 +269,47 @@ Zulu:
 http://artifactory.example.com/jdk/${JDKW_DIST}/zulu${JDKW_BUILD}-jdk${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}
 ```
 
+### Windows
+
+There are four common ways to execute shell like JDK Wrapper under Windows: Cygwin, Msys2, MinGW and the new Windows Subsystem for Linux (WSL).
+
+#### Cygwin (Supported)
+
+[Cygwin](https://www.cygwin.com/) is a collection of tools which provide a Linux like environment in Windows by providing a POSIX
+compatibility layer between the Cygwin environment and the Windows environment. Under Cygwin JDK Wrapper downloads and installs the Windows
+JDK.
+
+#### Msys2 (Supported)
+
+[Msys2](http://www.msys2.org/) is second version of the Minimalist GNU For Windows (MinGW; see below), this version takes a different approach by
+providing a POSIX compatibility layer using Cygwin libraries while still providing the MinGW compiler for creating native Windows
+applications. Under Msys JDK Wrapper downloads and installs the Windows JDK.
+
+Known Issues:
+* There is a known incompatibility with the `/bin/start` script which does not allow more than one argument to be passed. You can find more
+details and the current status of this issue in [MSYS2-packages#1177](https://github.com/Alexpux/MSYS2-packages/issues/1177). The easiest
+thing to do is patch your local install.
+
+#### WSL (Supported)
+
+The Windows Subsystem for Linux (WSL) is the latest take on Linux in Windows and is provided by Microsoft itself. You can find more
+information about WSL including installation instructions on [Microsoft's website](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
+In the case of WSL unlike Msys2 or Cygwin, the environment supports execution of actual Linux binaries. This made it more straight forward
+and also provided better integration with WSL for JDK Wrapper to install the Linux JDK than the Windows one. Under WSL JDK Wrapper downloads
+and installs the Linux JDK.
+
+#### MinGW (Not Supported)
+
+The Minimalist GNU for Windows or [MinGW](http://www.mingw.org/) provides utilities and tools compiled for and running natively on Windows.
+MinGW does not provide a POSIX compatible environment. Fortunately, JDK Wrapper does not require a full POSIX environment. After installing
+MinGW, you must download and compile from source: curl and its dependencies zlib, pthreads, openssl and libssh2. Although not supported,
+under MinGW JDK Wrapper downloads and installs the Windows JDK.
+
+Known Issues:
+* Similar to Msys2 there is a known incompatibility with the `/bin/start` script which does not allow more than one argument to be passed.
+You can find more details and the current status of this issue in [mingw#1963](https://sourceforge.net/p/mingw/bugs/1963/). The easiest
+thing to do is patch your local install.
+
 Prerequisites
 -------------
 
@@ -280,9 +321,13 @@ The jdk-wrapper script may work with other versions or with suitable replacement
 * grep (3.0)
 * sed (4.4)
 * sort (8.27)
-* sha1sum (8.27) or md5
+* sha1sum (8.27) or shasum (5.84) or md5
 
 Plus tools for extracting files from the target archive type (e.g. tar.gz, dmg, etc.) such as gzip, tar or xar (for example).
+
+In order to satisfy these requirements under Windows you will need to use something like [Cygwin](https://www.cygwin.com/) or
+the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/about). Also, under Windows by default you will
+be prompted for your password to complete the install due to [User Access Control](https://docs.microsoft.com/en-us/windows/access-protection/user-account-control/how-user-account-control-works).
 
 Oracle Technology Network
 -------------------------
