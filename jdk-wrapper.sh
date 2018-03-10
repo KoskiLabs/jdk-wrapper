@@ -57,6 +57,10 @@ checksum() {
   cat "${l_file}" | ${checksum_exec}
 }
 
+rand() {
+  awk 'BEGIN {srand();printf "%d\n", (rand() * 10^8);}'
+}
+
 download() {
   file="$1"
   if [ ! -f "${JDKW_PATH}/${file}" ]; then
@@ -110,7 +114,10 @@ fi
 
 # Resolve latest version
 if [ "${JDKW_RELEASE}" = "latest" ]; then
-  JDKW_RELEASE=$(curl ${CURL_OPTIONS} -f -k -L -H 'Accept: application/json' "${JDKW_BASE_URI}/releases/latest" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
+  latest_version_json="${TMPDIR:-/tmp}/jdkw-latest-version-$$.$(rand)"
+  safe_command "curl ${CURL_OPTIONS} -f -k -L -o \"${latest_version_json}\" -H 'Accept: application/json' \"${JDKW_BASE_URI}/releases/latest\""
+  JDKW_RELEASE=$(cat "${latest_version_json}" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
+  rm -f "${latest_version_json}"
   log_out "Resolved latest version to ${JDKW_RELEASE}"
 fi
 
