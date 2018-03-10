@@ -46,11 +46,17 @@ safe_command() {
 
 generate_manifest_checksum() {
   l_path=$1
-  checksum_exec="exit 1"
+  checksum_exec=""
   if command -v md5 > /dev/null; then
     checksum_exec="md5"
   elif command -v sha1sum > /dev/null; then
     checksum_exec="sha1sum"
+  elif command -v shasum > /dev/null; then
+    checksum_exec="shasum"
+  fi
+  if [ -z "${checksum_exec}" ]; then
+    log_err "ERROR: No supported checksum command found!"
+    exit 1
   fi
   l_escaped_path=$(printf '%s' "${l_path}" | sed -e 's@/@\\\/@g')
   echo $(find "${l_path}" -type f \( -iname "*" ! -iname "manifest.checksum" \) -print0 |  xargs -0 ls -l | awk '{print $5, $9}' | sort | sed 's/^\([0-9]*\) '"${l_escaped_path}"'\/\(.*\)$/\1 \2/' | ${checksum_exec})
