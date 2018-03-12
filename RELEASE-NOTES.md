@@ -1,6 +1,19 @@
 JDK Wrapper Release Notes
 =========================
 
+0.10.0 - TBD
+------------------------
+* Added official support for Windows under Cygin, Msys and WSL
+* Unofficial support included for Mingw
+* Renamed local variables to lower case to distinguish from environment variables
+* Relocated wrapper mismatch warning message to after execution of wrapped command
+
+0.9.3 - March 10, 2018
+------------------------
+* Improved logging when resolution of `latest` version fails ([partially addresses #5](https://github.com/KoskiLabs/jdk-wrapper/issues/5))
+* Fixed MacOS incompatibility computing hash in `jdk-wrapper.sh` ([addresses #6](https://github.com/KoskiLabs/jdk-wrapper/issues/6))
+* Added support for `shasum` in addition to `sha1sum` and `md5`
+
 0.9.2 - February 4, 2018
 ------------------------
 * Fixed bug in wrapper comparison of sha1sum where it incorrectly included the file name in the comparison
