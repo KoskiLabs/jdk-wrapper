@@ -143,6 +143,28 @@ extract_oracle() {
     safe_command "rm -rf \"${jdk}\""
     safe_command "rm -rf \"javaappletplugin.pkg\""
     JAVA_HOME="${JDKW_TARGET}/${jdkid}/Contents/Home"
+  elif [ "${JDKW_EXTENSION}" = "exe" ]; then
+    safe_command "chmod +x \"${jdk_archive}\""
+    os=$(uname -o)
+    if [ "${os}" = "Cygwin" ]; then
+      windows_target=$(cygpath -w \"${JDKW_TARGET}/${jdkid}\")
+      safe_command "cygstart -wait -o \"./${jdk_archive}\" /s ADDLOCAL=\"ToolsFeature,SourceFeature\" INSTALLDIR=\"${windows_target}\""
+    elif [ "${os}" = "Msys" ]; then
+      # Requires patch to address bug in Msys /bin/start
+      # See: https://github.com/Alexpux/MSYS2-packages/issues/1177
+      # See: https://sourceforge.net/p/mingw/bugs/1963/
+      windows_target=$(cygpath -w \"${JDKW_TARGET}/${jdkid}\")
+      safe_command "start /wait \"./${jdk_archive}\" //s ADDLOCAL=\"ToolsFeature,SourceFeature\" INSTALLDIR=\"${windows_target}\""
+    else
+      windows_target="${JDKW_TARGET}/${jdkid}"
+      safe_command "start /wait \"./${jdk_archive}\" /s ADDLOCAL=\"ToolsFeature,SourceFeature\" INSTALLDIR=\"${windows_target}\""
+    fi
+    if [ ! -d "${JDKW_TARGET}/${jdkid}/bin" ]; then
+      log_err "Installation failed"
+      exit 1
+    fi
+    safe_command "rm -f \"${jdk_archive}\""
+    JAVA_HOME="${JDKW_TARGET}/${jdkid}"
   else
     log_err "Unsupported oracle extension ${JDKW_EXTENSION}"
     safe_command "cd ${LAST_DIR}"
@@ -168,6 +190,11 @@ extract_zulu() {
     safe_command "rm -f \"${jdk_archive}\""
     safe_command "rm -rf \"${jdk}\""
     JAVA_HOME="${JDKW_TARGET}/${jdkid}/Contents/Home"
+  elif [ "${JDKW_EXTENSION}" = "zip" ]; then
+    safe_command "unzip \"${jdk_archive}\""
+    jdk_dir=$(find . -maxdepth 1 -type d -name 'zulu*' -printf '%P')
+    safe_command "rm -f \"${jdk_archive}\""
+    JAVA_HOME="${JDKW_TARGET}/${jdkid}/${jdk_dir}"
   else
     log_err "Unsupported zulu extension ${JDKW_EXTENSION}"
     safe_command "cd ${LAST_DIR}"
@@ -214,6 +241,7 @@ DIST_ZULU="zulu"
 PLATFORM_MACOSX=""
 PLATFORM_LINUX=""
 PLATFORM_SOLARIS=""
+PLATFORM_WINDOWS=""
 if [ -z "${JDKW_VERSION}" ]; then
   log_err "Required JDKW_VERSION (e.g. 8u65) value not provided or set"
   exit 1
@@ -242,6 +270,11 @@ if [ "${JDKW_DIST}" = "${DIST_ORACLE}" ]; then
   else
     PLATFORM_SOLARIS="solaris-x64"
   fi
+  if [ "${architecture}" = "x86_64" ]; then
+    PLATFORM_WINDOWS="windows-x64"
+  else
+    PLATFORM_WINDOWS="windows-i586"
+  fi
 elif [ "${JDKW_DIST}" = "${DIST_ZULU}" ]; then
   architecture=$(uname -m)
   PLATFORM_MACOSX="macosx_x64"
@@ -250,18 +283,28 @@ elif [ "${JDKW_DIST}" = "${DIST_ZULU}" ]; then
   else
     PLATFORM_LINUX="linux_i686"
   fi
+  if [ "${architecture}" = "x86_64" ]; then
+    PLATFORM_WINDOWS="win_x64"
+  else
+    PLATFORM_WINDOWS="win_i686"
+  fi
 else
   log_err "Unsupported distribution ${JDKW_DIST}"
   exit 1
 fi
 if [ -z "${JDKW_PLATFORM}" ]; then
-  os=$(uname)
-  if [ "${os}" = "Darwin" ]; then
+  kernel=$(uname)
+  os=$(uname -o)
+  if [ "${kernel}" = "Darwin" ]; then
     JDKW_PLATFORM="${PLATFORM_MACOSX}"
-  elif [ "${os}" = "Linux" ]; then
+  elif [ "${kernel}" = "Linux" ]; then
     JDKW_PLATFORM="${PLATFORM_LINUX}"
-  elif [ "${os}" = "SunOS" ]; then
+  elif [ "${kernel}" = "SunOS" ]; then
     JDKW_PLATFORM="${PLATFORM_SOLARIS}"
+  elif [ "${os}" = "Cygwin" ]; then
+    JDKW_PLATFORM="${PLATFORM_WINDOWS}"
+  elif [ "${os}" = "Msys" ]; then
+    JDKW_PLATFORM="${PLATFORM_WINDOWS}"
   fi
   if [ -z "${JDKW_PLATFORM}" ]; then
     log_err "JDKW_PLATFORM value not provided or set and unable to determine a reasonable default or not supported by ${JDKW_DIST}"
@@ -285,12 +328,21 @@ if [ -z "${JDKW_TARGET}" ]; then
   JDKW_TARGET="${HOME}/.jdk"
   log_out "Defaulted to target ${JDKW_TARGET}"
 fi
-extension="tar.gz"
+default_extension="tar.gz"
 if [ "${JDKW_PLATFORM}" = "${PLATFORM_MACOSX}" ]; then
-  extension="dmg"
+  default_extension="dmg"
+fi
+if [ "${JDKW_DIST}" = "${DIST_ORACLE}" ]; then
+  if [ "${JDKW_PLATFORM}" = "${PLATFORM_WINDOWS}" ]; then
+    default_extension="exe"
+  fi
+elif [ "${JDKW_DIST}" = "${DIST_ZULU}" ]; then
+  if [ "${JDKW_PLATFORM}" = "${PLATFORM_WINDOWS}" ]; then
+    default_extension="zip"
+  fi
 fi
 if [ -z "${JDKW_EXTENSION}" ]; then
-  JDKW_EXTENSION=${extension}
+  JDKW_EXTENSION=${default_extension}
   log_out "Defaulted to extension ${JDKW_EXTENSION}"
 fi
 if [ -z "${JDKW_VERBOSE}" ]; then
