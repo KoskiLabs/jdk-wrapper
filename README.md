@@ -49,6 +49,7 @@ oracle       | `7u4` to `8u112`    | [sample](https://raw.githubusercontent.com/
 oracle       | `8u121` to `8u162`  | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.8u121-8u162.jdkw)
 oracle       | `9.0.1`             | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.9.0.1.jdkw)
 oracle       | `9.0.4` to current  | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.9.0.4-current.jdkw)
+oracle       | `10.0.1`            | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.10.0.1-current.jdkw)
 zulu         | any available       | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/zulu.any.jdkw)
 
 Usage

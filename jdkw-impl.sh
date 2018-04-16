@@ -253,7 +253,7 @@ if [ -z "${JDKW_BUILD}" ]; then
 fi
 if [ "${JDKW_DIST}" = "${DIST_ORACLE}" ]; then
   architecture=$(uname -m)
-  if [ "${JAVA_MAJOR_VERSION}" = "9" ]; then
+  if [ "${JAVA_MAJOR_VERSION}" = "9" ] || [ "${JAVA_MAJOR_VERSION}" = "10" ]; then
     PLATFORM_MACOSX="osx-x64"
   else
     PLATFORM_MACOSX="macosx-x64"
@@ -313,7 +313,7 @@ if [ -z "${JDKW_PLATFORM}" ]; then
   log_out "Detected platform ${JDKW_PLATFORM}"
 fi
 if [ "${JDKW_DIST}" = "${DIST_ORACLE}" ]; then
-  if [ "${JAVA_MAJOR_VERSION}" = "9" ]; then
+  if [ "${JAVA_MAJOR_VERSION}" = "9" ] || [ "${JAVA_MAJOR_VERSION}" = "10" ]; then
     JDKW_JCE=
     log_out "Forced to no jce"
   elif [ -z "${JDKW_JCE}" ]; then
@@ -351,7 +351,7 @@ fi
 
 # Default JDK locations
 if [ "${JDKW_DIST}" = "${DIST_ORACLE}" ]; then
-  if [ "${JAVA_MAJOR_VERSION}" = "9" ]; then
+  if [ "${JAVA_MAJOR_VERSION}" = "9" ] || [ "${JAVA_MAJOR_VERSION}" = "10" ]; then
     LATEST_JDKW_SOURCE='http://download.oracle.com/otn-pub/java/jdk/${JDKW_VERSION}+${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}_${JDKW_PLATFORM}_bin.${JDKW_EXTENSION}'
     ARCHIVED_JDKW_SOURCE='http://download.oracle.com/otn/java/jdk/${JDKW_VERSION}+${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}_${JDKW_PLATFORM}_bin.${JDKW_EXTENSION}'
   else
