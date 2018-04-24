@@ -130,6 +130,12 @@ extract_oracle() {
     safe_command "rm -f \"${jdk_archive}\""
     package=$(ls | grep "jdk.*" | head -n 1)
     JAVA_HOME="${JDKW_TARGET}/${jdkid}/${package}"
+  elif [ "${JDKW_EXTENSION}" = "bin" ]; then
+    safe_command "chmod a+x \"${jdk_archive}\""
+    safe_command "./\"${jdk_archive}\""
+    safe_command "rm -f \"${jdk_archive}\""
+    package=$(ls | grep "jdk.*" | head -n 1)
+    JAVA_HOME="${JDKW_TARGET}/${jdkid}/${package}"
   elif [ "${JDKW_EXTENSION}" = "dmg" ]; then
     result=$(hdiutil attach "${jdk_archive}" | grep "/Volumes/.*")
     volume=$(echo "${result}" | grep -o "/Volumes/.*")
@@ -313,7 +319,7 @@ if [ -z "${JDKW_PLATFORM}" ]; then
   log_out "Detected platform ${JDKW_PLATFORM}"
 fi
 if [ "${JDKW_DIST}" = "${DIST_ORACLE}" ]; then
-  if [ "${JAVA_MAJOR_VERSION}" = "9" ]; then
+  if [ "${JAVA_MAJOR_VERSION}" = "6" ] || [ "${JAVA_MAJOR_VERSION}" = "9" ] ; then
     JDKW_JCE=
     log_out "Forced to no jce"
   elif [ -z "${JDKW_JCE}" ]; then
