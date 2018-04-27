@@ -10,6 +10,8 @@ JDK Wrapper Release Notes
 * Support for Oracle JDK 6 and `bin` format -- thanks to [cbamelis](https://github.com/cbamelis)! ([PR #11](https://github.com/KoskiLabs/jdk-wrapper/pull/11))
 * Support for Oracle JDK 10 -- thanks to [cbamelis](https://github.com/cbamelis)! ([PR #12](https://github.com/KoskiLabs/jdk-wrapper/pull/12))
 * Fixed argument quoting in both jdk-wrapper.sh and jdkw-impl.sh ([addresses #13](https://github.com/KoskiLabs/jdk-wrapper/issues/13))
+* Added support for `sha256sum` and defaulted `shasum` to use `-a 256`
+* Updated checksum precedence order to: sha256sum, shasum, sha1sum, and last md5
 
 0.9.3 - March 10, 2018
 ------------------------
