@@ -220,16 +220,22 @@ fi
 in_command=
 command=
 for arg in "$@"; do
-  if [ ! -z ${in_command} ]; then
-    command="${command} \"${arg}\""
-  else
+  if [ -z ${in_command} ]; then
     jdkw_arg=$(echo "${arg}" | grep 'JDKW_.*')
     if [ -n "${jdkw_arg}" ]; then
       eval ${arg}
     else
       in_command=1
-      command="\"${arg}\""
     fi
+  fi
+  if [ ! -z ${in_command} ]; then
+    case "${arg}" in
+      *\'*)
+         arg=`printf "%s" "$arg" | sed "s/'/'\"'\"'/g"`
+         ;;
+      *) : ;;
+    esac
+    command="${command} '${arg}'"
   fi
 done
 
