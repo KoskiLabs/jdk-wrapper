@@ -9,20 +9,20 @@ assume no responsibility for compliance with the Oracle or Zulu JDK license
 agreement or any other applicable agreements. Please see [LICENSE](LICENSE)
 for additional conditions of use._
 
-<a href="https://raw.githubusercontent.com/Koskilabs/jdk-wrapper/master/LICENSE">
+<a href="https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/LICENSE">
     <img src="https://img.shields.io/hexpm/l/plug.svg"
          alt="License: Apache 2">
 </a>
-<a href="https://travis-ci.org/Koskilabs/jdk-wrapper/">
-    <img src="https://travis-ci.org/vjkoskela/jdk-wrapper.png"
+<a href="https://travis-ci.org/KoskiLabs/jdk-wrapper/">
+    <img src="https://travis-ci.org/KoskiLabs/jdk-wrapper.png"
          alt="Travis Build">
 </a>
-<a href="https://github.com/Koskilabs/jdk-wrapper/releases">
-    <img src="https://img.shields.io/github/release/koskilabs/jdk-wrapper.svg"
+<a href="https://github.com/KoskiLabs/jdk-wrapper/releases">
+    <img src="https://img.shields.io/github/release/KoskiLabs/jdk-wrapper.svg"
          alt="Releases">
 </a>
-<a href="https://github.com/Koskilabs/jdk-wrapper/releases">
-    <img src="https://img.shields.io/github/downloads/koskilabs/jdk-wrapper/total.svg"
+<a href="https://github.com/KoskiLabs/jdk-wrapper/releases">
+    <img src="https://img.shields.io/github/downloads/KoskiLabs/jdk-wrapper/total.svg"
          alt="Downloads">
 </a>
 
@@ -125,9 +125,12 @@ The default JDK Wrapper release is `latest`.<br/>
 The default target directory is `~/.jdk`.<br/>
 The default platform is detected using `uname`.<br/>
 By default the Java Cryptographic Extensions are included*.<br/>
-By default the extension depends on the distribution type.<br/>
+By default the extension depends on the distribution and platform type.<br/>
 * `dmg` is used for Darwin (MacOS)
-* `tar.gz` is used for Linux/Solaris
+* `tar.gz` is used for Linux
+* `tar.gz` is used for Solaris
+* `exe` is used under Oracle for Windows
+* `zip` is used under Zulu for Windows
 By default the source url is from the distribution type provider.<br/>
 By default the wrapper does not log.
 
@@ -273,6 +276,9 @@ http://artifactory.example.com/jdk/${JDKW_DIST}/zulu${JDKW_BUILD}-jdk${JDKW_VERS
 ### Windows
 
 There are four common ways to execute shell like JDK Wrapper under Windows: Cygwin, Msys2, MinGW and the new Windows Subsystem for Linux (WSL).
+When the JDK is installed from an executable (e.g. for Oracle under Cygwin) [User Access Control](https://docs.microsoft.com/en-us/windows/access-protection/user-account-control/how-user-account-control-works)
+will prompt you to allow the installation. Please disable User Access Control or select a distribution with a non-executable Windows installation
+(e.g. Zulu).
 
 #### Cygwin (Supported)
 
@@ -325,10 +331,6 @@ The jdk-wrapper script may work with other versions or with suitable replacement
 * sha1sum (8.27) or shasum (5.84) or md5
 
 Plus tools for extracting files from the target archive type (e.g. tar.gz, dmg, etc.) such as gzip, tar or xar (for example).
-
-In order to satisfy these requirements under Windows you will need to use something like [Cygwin](https://www.cygwin.com/) or
-the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/about). Also, under Windows by default you will
-be prompted for your password to complete the install due to [User Access Control](https://docs.microsoft.com/en-us/windows/access-protection/user-account-control/how-user-account-control-works).
 
 Oracle Technology Network
 -------------------------

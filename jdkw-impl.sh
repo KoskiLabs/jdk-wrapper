@@ -88,40 +88,40 @@ otn_signon() {
 
   # Download the homepage
   log_out "OTN Login: Getting homepage..."
-  curl ${CURL_OPTIONS} -H "User-Agent:${OTN_USER_AGENT}" -k -L -c "${l_cookiejar}" -o /dev/null https://www.oracle.com
+  curl ${curl_options} -H "User-Agent:${otn_user_agent}" -k -L -c "${l_cookiejar}" -o /dev/null https://www.oracle.com
 
   # Download and parse the redirect
   log_out "OTN Login: Getting redirect..."
-  curl ${CURL_OPTIONS} -H "User-Agent:${OTN_USER_AGENT}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -o "${l_redirectform}" http://www.oracle.com/webapps/redirect/signon?nexturl=https://www.oracle.com/index.html?
+  curl ${curl_options} -H "User-Agent:${otn_user_agent}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -o "${l_redirectform}" http://www.oracle.com/webapps/redirect/signon?nexturl=https://www.oracle.com/index.html?
   redirect_data=$(otn_extract "${l_redirectform}")
 
   # Redirect to the sign-on form
   log_out "OTN Login: Getting sign-on..."
-  curl ${CURL_OPTIONS} -H "User-Agent:${OTN_USER_AGENT}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -o "${l_signon}" -d "${redirect_data}" https://login.oracle.com:443/oaam_server/oamLoginPage.jsp
+  curl ${curl_options} -H "User-Agent:${otn_user_agent}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -o "${l_signon}" -d "${redirect_data}" https://login.oracle.com:443/oaam_server/oamLoginPage.jsp
   signon_data=$(otn_extract "${l_signon}")
   signon_data="${signon_data}${l_username}&"
   signon_data="${signon_data}&${l_password}&"
 
   # Post the sign-on form
   log_out "OTN Login: Posting login..."
-  curl ${CURL_OPTIONS} -H "User-Agent:${OTN_USER_AGENT}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -X POST -d "${signon_data}" --referer https://login.oracle.com:443/oaam_server/oamLoginPage.jsp -o /dev/null https://login.oracle.com:443/oaam_server/loginAuth.do
+  curl ${curl_options} -H "User-Agent:${otn_user_agent}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -X POST -d "${signon_data}" --referer https://login.oracle.com:443/oaam_server/oamLoginPage.jsp -o /dev/null https://login.oracle.com:443/oaam_server/loginAuth.do
 
   # Add the accept cookie to the jar
   printf ".oracle.com\tTRUE\t/\tFALSE\t0\toraclelicense\taccept-securebackup-cookie\n" >> "${l_cookiejar}"
 
   # Complete the sign-on
   log_out "OTN Login: Completing login..."
-  curl ${CURL_OPTIONS} -H "User-Agent:${OTN_USER_AGENT}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -X POST -d "${signon_data}" --referer https://login.oracle.com:443/oaam_server/loginAuth.do -o "${l_credsubmit}" https://login.oracle.com:443/oaam_server/authJump.do?jump=false
+  curl ${curl_options} -H "User-Agent:${otn_user_agent}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -X POST -d "${signon_data}" --referer https://login.oracle.com:443/oaam_server/loginAuth.do -o "${l_credsubmit}" https://login.oracle.com:443/oaam_server/authJump.do?jump=false
   credsubmit_data=$(otn_extract "${l_credsubmit}")
 
   sleep 3
   
-  curl ${CURL_OPTIONS} -H "User-Agent:${OTN_USER_AGENT}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -X POST -d "${credsubmit_data}" --referer https://login.oracle.com:443/oaam_server/authJump.do -o /dev/null https://login.oracle.com:443/oam/server/dap/cred_submit
+  curl ${curl_options} -H "User-Agent:${otn_user_agent}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -X POST -d "${credsubmit_data}" --referer https://login.oracle.com:443/oaam_server/authJump.do -o /dev/null https://login.oracle.com:443/oam/server/dap/cred_submit
 
   # Return the filled cookie jar
   rm "${l_redirectform}"
   rm "${l_signon}"
-  OTN_COOKIE_JAR="${l_cookiejar}"
+  otn_cookie_jar="${l_cookiejar}"
 }
 
 extract_oracle() {
@@ -173,7 +173,6 @@ extract_oracle() {
     JAVA_HOME="${JDKW_TARGET}/${jdkid}"
   else
     log_err "Unsupported oracle extension ${JDKW_EXTENSION}"
-    safe_command "cd ${LAST_DIR}"
     exit 1
   fi
 }
@@ -203,16 +202,15 @@ extract_zulu() {
     JAVA_HOME="${JDKW_TARGET}/${jdkid}/${jdk_dir}"
   else
     log_err "Unsupported zulu extension ${JDKW_EXTENSION}"
-    safe_command "cd ${LAST_DIR}"
     exit 1
   fi
 }
 
 # Default curl options
-CURL_OPTIONS=""
+curl_options=""
 
 # Default user agent
-OTN_USER_AGENT='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36'
+otn_user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36'
 
 # Load properties file in home directory
 if [ -f "${HOME}/.jdkw" ]; then
@@ -225,74 +223,80 @@ if [ -f ".jdkw" ]; then
 fi
 
 # Process command line arguments
-IN_COMMAND=
-COMMAND=
-for ARG in "$@"; do
-  if [ ! -z ${IN_COMMAND} ]; then
-    COMMAND="${COMMAND} \"${ARG}\""
-  else
-    JDKW_ARG=$(echo "${ARG}" | grep 'JDKW_.*')
-    if [ -n "${JDKW_ARG}" ]; then
-      eval ${ARG}
+in_command=
+command=
+for arg in "$@"; do
+  if [ -z ${in_command} ]; then
+    jdkw_arg=$(echo "${arg}" | grep 'JDKW_.*')
+    if [ -n "${jdkw_arg}" ]; then
+      eval ${arg}
     else
-      IN_COMMAND=1
-      COMMAND="\"${ARG}\""
+      in_command=1
     fi
+  fi
+  if [ ! -z ${in_command} ]; then
+    case "${arg}" in
+      *\'*)
+         arg=`printf "%s" "$arg" | sed "s/'/'\"'\"'/g"`
+         ;;
+      *) : ;;
+    esac
+    command="${command} '${arg}'"
   fi
 done
 
 # Process configuration
-DIST_ORACLE="oracle"
-DIST_ZULU="zulu"
-PLATFORM_MACOSX=""
-PLATFORM_LINUX=""
-PLATFORM_SOLARIS=""
-PLATFORM_WINDOWS=""
+dist_oracle="oracle"
+dist_zulu="zulu"
+platform_macosx=""
+platform_linux=""
+platform_solaris=""
+platform_windows=""
 if [ -z "${JDKW_VERSION}" ]; then
   log_err "Required JDKW_VERSION (e.g. 8u65) value not provided or set"
   exit 1
 fi
-JAVA_MAJOR_VERSION=$(echo "${JDKW_VERSION}" | sed 's/\([0-9]*\).*/\1/')
+java_major_version=$(echo "${JDKW_VERSION}" | sed 's/\([0-9]*\).*/\1/')
 if [ -z "${JDKW_BUILD}" ]; then
   log_err "Required JDKW_BUILD (e.g. b17) value not provided or set"
   exit 1
 fi
-if [ "${JDKW_DIST}" = "${DIST_ORACLE}" ]; then
+if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
   architecture=$(uname -m)
-  if [ "${JAVA_MAJOR_VERSION}" = "9" ]; then
-    PLATFORM_MACOSX="osx-x64"
+  if [ "${java_major_version}" = "9" ]; then
+    platform_macosx="osx-x64"
   else
-    PLATFORM_MACOSX="macosx-x64"
+    platform_macosx="macosx-x64"
   fi
   if [ "${architecture}" = "x86_64" ]; then
-    PLATFORM_LINUX="linux-x64"
+    platform_linux="linux-x64"
   else
-    PLATFORM_LINUX="linux-i586"
+    platform_linux="linux-i586"
   fi
   if [ "${architecture}" = "sparc64" ]; then
-    PLATFORM_SOLARIS="solaris-sparcv9"
+    platform_solaris="solaris-sparcv9"
   elif [ "${architecture}" = "sun4u" ]; then
-    PLATFORM_SOLARIS="solaris-sparcv9"
+    platform_solaris="solaris-sparcv9"
   else
-    PLATFORM_SOLARIS="solaris-x64"
+    platform_solaris="solaris-x64"
   fi
   if [ "${architecture}" = "x86_64" ]; then
-    PLATFORM_WINDOWS="windows-x64"
+    platform_windows="windows-x64"
   else
-    PLATFORM_WINDOWS="windows-i586"
+    platform_windows="windows-i586"
   fi
-elif [ "${JDKW_DIST}" = "${DIST_ZULU}" ]; then
+elif [ "${JDKW_DIST}" = "${dist_zulu}" ]; then
   architecture=$(uname -m)
-  PLATFORM_MACOSX="macosx_x64"
+  platform_macosx="macosx_x64"
   if [ "${architecture}" = "x86_64" ]; then
-    PLATFORM_LINUX="linux_x64"
+    platform_linux="linux_x64"
   else
-    PLATFORM_LINUX="linux_i686"
+    platform_linux="linux_i686"
   fi
   if [ "${architecture}" = "x86_64" ]; then
-    PLATFORM_WINDOWS="win_x64"
+    platform_windows="win_x64"
   else
-    PLATFORM_WINDOWS="win_i686"
+    platform_windows="win_i686"
   fi
 else
   log_err "Unsupported distribution ${JDKW_DIST}"
@@ -302,15 +306,15 @@ if [ -z "${JDKW_PLATFORM}" ]; then
   kernel=$(uname)
   os=$(uname -o)
   if [ "${kernel}" = "Darwin" ]; then
-    JDKW_PLATFORM="${PLATFORM_MACOSX}"
+    JDKW_PLATFORM="${platform_macosx}"
   elif [ "${kernel}" = "Linux" ]; then
-    JDKW_PLATFORM="${PLATFORM_LINUX}"
+    JDKW_PLATFORM="${platform_linux}"
   elif [ "${kernel}" = "SunOS" ]; then
-    JDKW_PLATFORM="${PLATFORM_SOLARIS}"
+    JDKW_PLATFORM="${platform_solaris}"
   elif [ "${os}" = "Cygwin" ]; then
-    JDKW_PLATFORM="${PLATFORM_WINDOWS}"
+    JDKW_PLATFORM="${platform_windows}"
   elif [ "${os}" = "Msys" ]; then
-    JDKW_PLATFORM="${PLATFORM_WINDOWS}"
+    JDKW_PLATFORM="${platform_windows}"
   fi
   if [ -z "${JDKW_PLATFORM}" ]; then
     log_err "JDKW_PLATFORM value not provided or set and unable to determine a reasonable default or not supported by ${JDKW_DIST}"
@@ -319,7 +323,7 @@ if [ -z "${JDKW_PLATFORM}" ]; then
   log_out "Detected platform ${JDKW_PLATFORM}"
 fi
 if [ "${JDKW_DIST}" = "${DIST_ORACLE}" ]; then
-  if [ "${JAVA_MAJOR_VERSION}" = "6" ] || [ "${JAVA_MAJOR_VERSION}" = "9" ] ; then
+  if [ "${java_major_version}" = "6" ] || [ "${java_major_version}" = "9" ] ; then
     JDKW_JCE=
     log_out "Forced to no jce"
   elif [ -z "${JDKW_JCE}" ]; then
@@ -335,15 +339,13 @@ if [ -z "${JDKW_TARGET}" ]; then
   log_out "Defaulted to target ${JDKW_TARGET}"
 fi
 default_extension="tar.gz"
-if [ "${JDKW_PLATFORM}" = "${PLATFORM_MACOSX}" ]; then
+if [ "${JDKW_PLATFORM}" = "${platform_macosx}" ]; then
   default_extension="dmg"
 fi
-if [ "${JDKW_DIST}" = "${DIST_ORACLE}" ]; then
-  if [ "${JDKW_PLATFORM}" = "${PLATFORM_WINDOWS}" ]; then
+if [ "${JDKW_PLATFORM}" = "${platform_windows}" ]; then
+  if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
     default_extension="exe"
-  fi
-elif [ "${JDKW_DIST}" = "${DIST_ZULU}" ]; then
-  if [ "${JDKW_PLATFORM}" = "${PLATFORM_WINDOWS}" ]; then
+  elif [ "${JDKW_DIST}" = "${dist_zulu}" ]; then
     default_extension="zip"
   fi
 fi
@@ -352,21 +354,21 @@ if [ -z "${JDKW_EXTENSION}" ]; then
   log_out "Defaulted to extension ${JDKW_EXTENSION}"
 fi
 if [ -z "${JDKW_VERBOSE}" ]; then
-  CURL_OPTIONS="${CURL_OPTIONS} --silent"
+  curl_options="${curl_options} --silent"
 fi
 
 # Default JDK locations
-if [ "${JDKW_DIST}" = "${DIST_ORACLE}" ]; then
-  if [ "${JAVA_MAJOR_VERSION}" = "9" ]; then
-    LATEST_JDKW_SOURCE='http://download.oracle.com/otn-pub/java/jdk/${JDKW_VERSION}+${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}_${JDKW_PLATFORM}_bin.${JDKW_EXTENSION}'
-    ARCHIVED_JDKW_SOURCE='http://download.oracle.com/otn/java/jdk/${JDKW_VERSION}+${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}_${JDKW_PLATFORM}_bin.${JDKW_EXTENSION}'
+if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
+  if [ "${java_major_version}" = "9" ]; then
+    latest_jdk_source='http://download.oracle.com/otn-pub/java/jdk/${JDKW_VERSION}+${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}_${JDKW_PLATFORM}_bin.${JDKW_EXTENSION}'
+    archived_jdk_source='http://download.oracle.com/otn/java/jdk/${JDKW_VERSION}+${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}_${JDKW_PLATFORM}_bin.${JDKW_EXTENSION}'
   else
-    LATEST_JDKW_SOURCE='http://download.oracle.com/otn-pub/java/jdk/${JDKW_VERSION}-${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}'
-    ARCHIVED_JDKW_SOURCE='http://download.oracle.com/otn/java/jdk/${JDKW_VERSION}-${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}'
+    latest_jdk_source='http://download.oracle.com/otn-pub/java/jdk/${JDKW_VERSION}-${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}'
+    archived_jdk_source='http://download.oracle.com/otn/java/jdk/${JDKW_VERSION}-${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}'
   fi
 else
-  LATEST_JDKW_SOURCE='http://cdn.azul.com/zulu/bin/zulu${JDKW_BUILD}-jdk${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}'
-  ARCHIVED_JDKW_SOURCE=''
+  latest_jdk_source='http://cdn.azul.com/zulu/bin/zulu${JDKW_BUILD}-jdk${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}'
+  archived_jdk_source=''
 fi
 
 # Ensure target directory exists
@@ -413,7 +415,7 @@ if [ ! -f "${JDKW_TARGET}/${jdkid}/environment" ]; then
   fi
 
   # Create target directory
-  LAST_DIR=$(pwd)
+  last_dir=$(pwd)
   safe_command "mkdir -p \"${JDKW_TARGET}/${jdkid}\""
   safe_command "cd \"${JDKW_TARGET}/${jdkid}\""
 
@@ -433,22 +435,22 @@ if [ ! -f "${JDKW_TARGET}/${jdkid}/environment" ]; then
     if [ -n "${JDKW_SOURCE}" ]; then
       eval "jdk_url=\"${JDKW_SOURCE}\""
       log_out "Attempting download of JDK from ${jdk_url}"
-      curl ${CURL_OPTIONS} -f -j -k -L -H "Cookie: oraclelicense=accept-securebackup-cookie" -o "${jdk_archive}" "${jdk_url}"
+      curl ${curl_options} -f -j -k -L -H "Cookie: oraclelicense=accept-securebackup-cookie" -o "${jdk_archive}" "${jdk_url}"
       download_result=$?
     fi
 
     # 2) Attempt download from latest source
     if [ ${download_result} != 0 ]; then
-      eval "jdk_url=\"${LATEST_JDKW_SOURCE}\""
+      eval "jdk_url=\"${latest_jdk_source}\""
       log_out "Attempting download of JDK from ${jdk_url}"
-      curl ${CURL_OPTIONS} -f -j -k -L -H "Cookie: oraclelicense=accept-securebackup-cookie" -o "${jdk_archive}" "${jdk_url}"
+      curl ${curl_options} -f -j -k -L -H "Cookie: oraclelicense=accept-securebackup-cookie" -o "${jdk_archive}" "${jdk_url}"
       download_result=$?
     fi
 
     # 3) Attempt download from archive source (only applies to oracle)
-    if [ "${JDKW_DIST}" = "${DIST_ORACLE}" ]; then
+    if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
       if [ ${download_result} != 0 ]; then
-        eval "jdk_url=\"${ARCHIVED_JDKW_SOURCE}\""
+        eval "jdk_url=\"${archived_jdk_source}\""
         log_out "Attempting download of JDK from ${jdk_url}"
         if [ -z "${JDKW_USERNAME}" ]; then
           log_err "No username specified; aborting..."
@@ -457,7 +459,7 @@ if [ ! -f "${JDKW_TARGET}/${jdkid}/environment" ]; then
         else
           otn_signon "${JDKW_USERNAME}" "${JDKW_PASSWORD}"
           log_out "Initiating authenticated download..."
-          curl ${CURL_OPTIONS} -f -k -L -H "User-Agent:${OTN_USER_AGENT}" -b "${OTN_COOKIE_JAR}" -o "${jdk_archive}" "${jdk_url}"
+          curl ${curl_options} -f -k -L -H "User-Agent:${otn_user_agent}" -b "${otn_cookie_jar}" -o "${jdk_archive}" "${jdk_url}"
           download_result=$?
         fi
       fi
@@ -485,23 +487,23 @@ if [ ! -f "${JDKW_TARGET}/${jdkid}/environment" ]; then
     # 1) The archive name is different.
     # 2) The archive layout is different.
 
-    if [ "${JAVA_MAJOR_VERSION}" = "8" ]; then
-      jce_archive="jce_policy-${JAVA_MAJOR_VERSION}.zip"
-    elif [ "${JAVA_MAJOR_VERSION}" = "7" ]; then
-      jce_archive="UnlimitedJCEPolicyJDK${JAVA_MAJOR_VERSION}.zip"
+    if [ "${java_major_version}" = "8" ]; then
+      jce_archive="jce_policy-${java_major_version}.zip"
+    elif [ "${java_major_version}" = "7" ]; then
+      jce_archive="UnlimitedJCEPolicyJDK${java_major_version}.zip"
     else
-      log_err "JCE not supported for ${JDKW_DIST} major version ${JAVA_MAJOR_VERSION}"
+      log_err "JCE not supported for ${JDKW_DIST} major version ${java_major_version}"
       safe_command "rm -rf \"${JDKW_TARGET}/${jdkid}\""
       exit 1
     fi
-    jce_url="http://download.oracle.com/otn-pub/java/jce/${JAVA_MAJOR_VERSION}/${jce_archive}"
+    jce_url="http://download.oracle.com/otn-pub/java/jce/${java_major_version}/${jce_archive}"
 
     # Download archive
     log_out "Downloading JCE from ${jce_url}"
     download_result=
     if command -v curl > /dev/null; then
       # Do NOT execute with safe_command; undo operations below on failure
-      curl ${CURL_OPTIONS} -j -k -L -H "Cookie: gpw_e24=xxx; oraclelicense=accept-securebackup-cookie;" -o "${jce_archive}" "${jce_url}"
+      curl ${curl_options} -j -k -L -H "Cookie: gpw_e24=xxx; oraclelicense=accept-securebackup-cookie;" -o "${jce_archive}" "${jce_url}"
       download_result=$?
     else
       log_err "Could not find curl; aborting..."
@@ -515,14 +517,14 @@ if [ ! -f "${JDKW_TARGET}/${jdkid}/environment" ]; then
 
     # Extract contents
     safe_command "unzip -qq \"${jce_archive}\""
-    if [ "${JAVA_MAJOR_VERSION}" = "8" ]; then
-      safe_command "find \"./UnlimitedJCEPolicyJDK${JAVA_MAJOR_VERSION}\" -type f -exec cp {} \"${JAVA_HOME}/jre/lib/security\" \\;"
-      safe_command "rm -rf \"./UnlimitedJCEPolicyJDK${JAVA_MAJOR_VERSION}\""
-    elif [ "${JAVA_MAJOR_VERSION}" = "7" ]; then
+    if [ "${java_major_version}" = "8" ]; then
+      safe_command "find \"./UnlimitedJCEPolicyJDK${java_major_version}\" -type f -exec cp {} \"${JAVA_HOME}/jre/lib/security\" \\;"
+      safe_command "rm -rf \"./UnlimitedJCEPolicyJDK${java_major_version}\""
+    elif [ "${java_major_version}" = "7" ]; then
       safe_command "find \"./UnlimitedJCEPolicy\" -type f -exec cp {} \"${JAVA_HOME}/jre/lib/security\" \\;"
       safe_command "rm -rf \"./UnlimitedJCEPolicy\""
     else
-      log_err "JCE not supported for ${JDKW_DIST} major version ${JAVA_MAJOR_VERSION}"
+      log_err "JCE not supported for ${JDKW_DIST} major version ${java_major_version}"
       safe_command "rm -rf \"${JDKW_TARGET}/${jdkid}\""
       exit 1
     fi
@@ -531,7 +533,7 @@ if [ ! -f "${JDKW_TARGET}/${jdkid}/environment" ]; then
 
   # Installation complete
   generate_manifest_checksum "${JDKW_TARGET}/${jdkid}" > "${manifest}"
-  safe_command "cd ${LAST_DIR}"
+  safe_command "cd ${last_dir}"
 fi
 
 # Setup the environment
@@ -542,6 +544,6 @@ fi
 . "${JDKW_TARGET}/${jdkid}/environment"
 
 # Execute the provided command
-log_out "Executing: ${COMMAND}"
-eval ${COMMAND}
+log_out "Executing: ${command}"
+eval ${command}
 exit $?
