@@ -86,13 +86,21 @@ if [ -f ".jdkw" ]; then
 fi
 
 # Process command line arguments
+command=
 for arg in "$@"; do
-  jdkw_arg=$(echo "${arg}" | grep 'JDKW_.*')
-  if [ -n "${jdkw_arg}" ]; then
-    eval ${arg}
-  else
-    break
+  if [ -z ${in_command} ]; then
+    jdkw_arg=$(echo "${arg}" | grep 'JDKW_.*')
+    if [ -n "${jdkw_arg}" ]; then
+      eval ${arg}
+    fi
   fi
+  case "${arg}" in
+    *\'*)
+       arg=`printf "%s" "$arg" | sed "s/'/'\"'\"'/g"`
+       ;;
+    *) : ;;
+  esac
+  command="${command} '${arg}'"
 done
 
 # Process configuration
@@ -134,7 +142,7 @@ download_if_needed "${jdkw_impl}" "${jdkw_path}"
 download_if_needed "${jdkw_wrapper}" "${jdkw_path}"
 
 # Execute the provided command
-${jdkw_path}/${jdkw_impl} $@
+eval ${jdkw_path}/${jdkw_impl} ${command}
 result=$?
 
 # Check whether this wrapper is the one specified for this version

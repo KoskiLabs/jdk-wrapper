@@ -7,6 +7,9 @@ JDK Wrapper Release Notes
 * Unofficial support included for Mingw
 * Renamed local variables to lower case to distinguish from environment variables
 * Relocated wrapper mismatch warning message to after execution of wrapped command
+* Support for Oracle JDK 6 and `bin` format -- thanks to [cbamelis](https://github.com/cbamelis)! ([PR #11](https://github.com/KoskiLabs/jdk-wrapper/pull/11))
+* Support for Oracle JDK 10 -- thanks to [cbamelis](https://github.com/cbamelis)! ([PR #12](https://github.com/KoskiLabs/jdk-wrapper/pull/12))
+* Fixed argument quoting in both jdk-wrapper.sh and jdkw-impl.sh ([addresses #13](https://github.com/KoskiLabs/jdk-wrapper/issues/13))
 
 0.9.3 - March 10, 2018
 ------------------------
