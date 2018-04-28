@@ -54,11 +54,18 @@ zulu         | any available       | [sample](https://raw.githubusercontent.com/
 Usage
 -----
 
-Simply set your desired JDK version and wrap your command relying on the JDK with a call to the `jdk-wrapper.sh` script.
+Simply specify the desired JDK version and wrap your command relying on the JDK with a call to the `jdk-wrapper.sh` script.
+
+The first configuration option is to pass arguments to `jdk-wrapper.sh` which define the configuration. Any argument that begins with `JDKW_` will be
+considered a configuration parameter, everything starting from the first non-configuration parameter onward is considered part of the command.
+
+    > ./jdk-wrapper.sh JDKW_VERSION=0.9.0 JDKW_DIST=oracle JDKW_VERSION=8u121 JDKW_BUILD=b13 JDKW_TOKEN=e9e7ea248e2c4826b92b3f075a80e441 <CMD>
+
+Alternatively, you can set these parameters as part of the environment. For example:
 
     > JDKW_DIST=oracle JDKW_VERSION=8u121 JDKW_BUILD=b13 JDKW_TOKEN=e9e7ea248e2c4826b92b3f075a80e441 ./jdk-wrapper.sh <CMD>
 
-Instead of passing these environment variables on the command line you can set them in your session.
+Instead of setting the environment variables on the command line you can set them in your session.
 
     > export JDKW_DIST=oracle
     > export JDKW_VERSION=8u121
@@ -66,16 +73,7 @@ Instead of passing these environment variables on the command line you can set t
     > export JDKW_TOKEN=e9e7ea248e2c4826b92b3f075a80e441
     > ./jdk-wrapper.sh <CMD>
 
-You can also configure values with a `.jdkw` properties file in your home directory.
-
-```
-JDKW_DIST=oracle
-JDKW_VERSION=8u121
-JDKW_BUILD=b13
-JDKW_TOKEN=e9e7ea248e2c4826b92b3f075a80e441
-```
-
-Alternatively, create a `.jdkw` properties file in the working directory for per-project configuration (recommended).
+Alternatively, create a `.jdkw` file in the working directory for per-project configuration (recommended).
 
 ```
 JDKW_DIST=oracle
@@ -84,21 +82,25 @@ JDKW_BUILD=b11
 JDKW_TOKEN=d54c1d3a095b4ff2b6607d096fa80163
 ```
 
-Then execute `jdk-wrapper.sh` script passing in your command and its arguments.
+Lastly, you can also specify configuration values in a `.jdkw` file in your home directory for per-user configuration (e.g. for OTN credentials).
+
+```
+JDKW_DIST=oracle
+JDKW_VERSION=8u121
+JDKW_BUILD=b13
+JDKW_TOKEN=e9e7ea248e2c4826b92b3f075a80e441
+```
+
+Once you have configured JDK Wrapper execute `jdk-wrapper.sh` script passing in your command and its arguments.
 
     > ./jdk-wrapper.sh <CMD>
-
-The third option is to pass arguments to `jdk-wrapper.sh` which define the configuration. Any argument that begins with `JDKW_` will be
-considered a configuration parameter, everything starting from the first non-configuration parameter onward is considered part of the command.
-
-    > ./jdk-wrapper.sh JDKW_VERSION=0.9.0 JDKW_DIST=oracle JDKW_VERSION=8u121 JDKW_BUILD=b13 JDKW_TOKEN=e9e7ea248e2c4826b92b3f075a80e441 <CMD>
 
 Finally, any combination of these four forms of configuration is permissible. The order of precedence for configuration from highest to lowest is:
 
 1) Command Line
-2) .jdkw (working directory)
-3) ~/.jdkw (home directory)
-4) Environment
+2) Environment
+3) .jdkw (working directory)
+4) ~/.jdkw (home directory)
 
 The wrapper script will download and cache the specified JDK version and set `JAVA_HOME` appropriately before executing the specified command.
 
@@ -327,7 +329,7 @@ The jdk-wrapper script may work with other versions or with suitable replacement
 * grep (3.0)
 * sed (4.4)
 * sort (8.27)
-* sha1sum (8.27) or shasum (5.84) or md5
+* sha256sum (8.29) or shasum (5.84) or sha1sum (8.27)  or md5
 
 Plus tools for extracting files from the target archive type (e.g. tar.gz, dmg, etc.) such as gzip, tar or xar (for example).
 
