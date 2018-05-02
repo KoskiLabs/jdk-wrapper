@@ -341,6 +341,9 @@ fi
 default_extension="tar.gz"
 if [ "${JDKW_PLATFORM}" = "${platform_macosx}" ]; then
   default_extension="dmg"
+  if [ "${JDKW_DIST}" = "${dist_oracle}" ] && [ "${java_major_version}" = "6" ] ; then
+    log_err "JDK${java_major_version} is not supported on ${platform_macosx}"
+  fi
 fi
 if [ "${JDKW_PLATFORM}" = "${platform_windows}" ]; then
   if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
