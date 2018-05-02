@@ -348,6 +348,10 @@ if [ "${JDKW_PLATFORM}" = "${platform_windows}" ]; then
   elif [ "${JDKW_DIST}" = "${dist_zulu}" ]; then
     default_extension="zip"
   fi
+elif [ "${JDKW_PLATFORM}" = "${platform_linux}" ]; then
+  if [ "${JDKW_DIST}" = "${dist_oracle}" ] && [ "${java_major_version}" = "6" ] ; then
+    default_extension="bin"
+  fi
 fi
 if [ -z "${JDKW_EXTENSION}" ]; then
   JDKW_EXTENSION=${default_extension}
