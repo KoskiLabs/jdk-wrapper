@@ -341,9 +341,6 @@ fi
 default_extension="tar.gz"
 if [ "${JDKW_PLATFORM}" = "${platform_macosx}" ]; then
   default_extension="dmg"
-  if [ "${JDKW_DIST}" = "${dist_oracle}" ] && [ "${java_major_version}" = "6" ] ; then
-    log_err "JDK${java_major_version} is not supported on ${platform_macosx}"
-  fi
 fi
 if [ "${JDKW_PLATFORM}" = "${platform_windows}" ]; then
   if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
@@ -362,6 +359,12 @@ if [ -z "${JDKW_EXTENSION}" ]; then
 fi
 if [ -z "${JDKW_VERBOSE}" ]; then
   curl_options="${curl_options} --silent"
+fi
+
+# Special rules
+if [ "${JDKW_PLATFORM}" = "${platform_macosx}" ] && [ "${JDKW_DIST}" = "${dist_oracle}" ] && [ "${java_major_version}" = "6" ] ; then
+  log_err "JDK${java_major_version} from ${dist_oracle} is not supported on ${platform_macosx}"
+  exit 1
 fi
 
 # Default JDK locations
