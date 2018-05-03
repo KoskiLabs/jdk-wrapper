@@ -45,6 +45,7 @@ Quick Start
 
 Distribution | Version             | `.jdkw`
 ------------ | ------------------- | -------
+oracle       | `6u45`              | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.6u45.jdkw)
 oracle       | `7u4` to `8u112`    | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.7u4-8u112.jdkw)
 oracle       | `8u121` to `8u162`  | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.8u121-8u162.jdkw)
 oracle       | `9.0.1`             | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.9.0.1.jdkw)
