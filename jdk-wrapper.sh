@@ -43,12 +43,14 @@ safe_command() {
 checksum() {
   l_file="$1"
   checksum_exec=""
-  if command -v md5 > /dev/null; then
-    checksum_exec="md5"
+  if command -v sha256sum > /dev/null; then
+    checksum_exec="sha256sum"
+  elif command -v shasum > /dev/null; then
+    checksum_exec="shasum -a 256"
   elif command -v sha1sum > /dev/null; then
     checksum_exec="sha1sum"
-  elif command -v shasum > /dev/null; then
-    checksum_exec="shasum"
+  elif command -v md5 > /dev/null; then
+    checksum_exec="md5"
   fi
   if [ -z "${checksum_exec}" ]; then
     log_err "ERROR: No supported checksum command found!"
