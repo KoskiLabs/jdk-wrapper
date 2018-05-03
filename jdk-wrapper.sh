@@ -87,7 +87,20 @@ if [ -f ".jdkw" ]; then
   . "./.jdkw"
 fi
 
-# Process command line arguments
+# Load properties from environment
+l_fifo="${TMPDIR:-/tmp}/$$.$(rand)"
+safe_command "mkfifo \"${l_fifo}\""
+env > "${l_fifo}" &
+while IFS='=' read -r name value
+do
+  jdkw_arg=$(echo "${name}" | grep 'JDKW_.*')
+  if [ -n "${jdkw_arg}" ]; then
+    eval "${name}=\"${value}\""
+  fi
+done < "${l_fifo}"
+safe_command "rm \"${l_fifo}\""
+
+# Load properties from command line arguments
 command=
 for arg in "$@"; do
   if [ -z ${in_command} ]; then

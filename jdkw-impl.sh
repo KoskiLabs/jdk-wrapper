@@ -132,6 +132,12 @@ extract_oracle() {
     safe_command "rm -f \"${jdk_archive}\""
     package=$(ls | grep "jdk.*" | head -n 1)
     JAVA_HOME="${JDKW_TARGET}/${jdkid}/${package}"
+  elif [ "${JDKW_EXTENSION}" = "bin" ]; then
+    safe_command "chmod a+x \"${jdk_archive}\""
+    safe_command "./\"${jdk_archive}\""
+    safe_command "rm -f \"${jdk_archive}\""
+    package=$(ls | grep "jdk.*" | head -n 1)
+    JAVA_HOME="${JDKW_TARGET}/${jdkid}/${package}"
   elif [ "${JDKW_EXTENSION}" = "dmg" ]; then
     result=$(hdiutil attach "${jdk_archive}" | grep "/Volumes/.*")
     volume=$(echo "${result}" | grep -o "/Volumes/.*")
@@ -218,7 +224,20 @@ if [ -f ".jdkw" ]; then
   . "./.jdkw"
 fi
 
-# Process command line arguments
+# Load properties from environment
+l_fifo="${TMPDIR:-/tmp}/$$.$(rand)"
+safe_command "mkfifo \"${l_fifo}\""
+env > "${l_fifo}" &
+while IFS='=' read -r name value
+do
+  jdkw_arg=$(echo "${name}" | grep 'JDKW_.*')
+  if [ -n "${jdkw_arg}" ]; then
+    eval "${name}=\"${value}\""
+  fi
+done < "${l_fifo}"
+safe_command "rm \"${l_fifo}\""
+
+# Load properties from command line arguments
 in_command=
 command=
 for arg in "$@"; do
@@ -319,7 +338,7 @@ if [ -z "${JDKW_PLATFORM}" ]; then
   log_out "Detected platform ${JDKW_PLATFORM}"
 fi
 if [ "${JDKW_DIST}" = "${DIST_ORACLE}" ]; then
-  if [ "${java_major_version}" = "9" ]; then
+  if [ "${java_major_version}" = "6" ] || [ "${java_major_version}" = "9" ] ; then
     JDKW_JCE=
     log_out "Forced to no jce"
   elif [ -z "${JDKW_JCE}" ]; then
@@ -344,6 +363,10 @@ if [ "${JDKW_PLATFORM}" = "${platform_windows}" ]; then
   elif [ "${JDKW_DIST}" = "${dist_zulu}" ]; then
     default_extension="zip"
   fi
+elif [ "${JDKW_PLATFORM}" = "${platform_linux}" ]; then
+  if [ "${JDKW_DIST}" = "${dist_oracle}" ] && [ "${java_major_version}" = "6" ] ; then
+    default_extension="bin"
+  fi
 fi
 if [ -z "${JDKW_EXTENSION}" ]; then
   JDKW_EXTENSION=${default_extension}
@@ -351,6 +374,12 @@ if [ -z "${JDKW_EXTENSION}" ]; then
 fi
 if [ -z "${JDKW_VERBOSE}" ]; then
   curl_options="${curl_options} --silent"
+fi
+
+# Special rules
+if [ "${JDKW_PLATFORM}" = "${platform_macosx}" ] && [ "${JDKW_DIST}" = "${dist_oracle}" ] && [ "${java_major_version}" = "6" ] ; then
+  log_err "JDK${java_major_version} from ${dist_oracle} is not supported on ${platform_macosx}"
+  exit 1
 fi
 
 # Default JDK locations

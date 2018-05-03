@@ -3,7 +3,7 @@ JDK Wrapper Release Notes
 
 0.10.0 - TBD
 ------------------------
-* Added official support for Windows under Cygin, Msys and WSL
+* Added official support for Windows under Cygwin, Msys and WSL
 * Unofficial support included for Mingw
 * Renamed local variables to lower case to distinguish from environment variables
 * Relocated wrapper mismatch warning message to after execution of wrapped command
@@ -12,6 +12,7 @@ JDK Wrapper Release Notes
 * Fixed argument quoting in both jdk-wrapper.sh and jdkw-impl.sh ([addresses #13](https://github.com/KoskiLabs/jdk-wrapper/issues/13))
 * Added support for `sha256sum` and defaulted `shasum` to use `-a 256`
 * Updated checksum precedence order to: sha256sum, shasum, sha1sum, and last md5
+* Set configuration precedence as (highest to lowest): command line, environment, working directory .jdkw, home directory .jdkw
 
 0.9.3 - March 10, 2018
 ------------------------
@@ -27,7 +28,7 @@ JDK Wrapper Release Notes
 ------------------------
 * Fixed several bugs in wrapper:
     * Added missing `-H` prefix to content-type header for `curl` invocation
-    * Automatically executable permissions to downloaded files\
+    * Automatically executable permissions to downloaded files
     * Renamed `JDKW_RELEASE` to `JDKW_URI`
     * Missing definition of `safe_command`
 * Minor improvements to wrapper code quality:
