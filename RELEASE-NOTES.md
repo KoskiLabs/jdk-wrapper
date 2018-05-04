@@ -1,7 +1,7 @@
 JDK Wrapper Release Notes
 =========================
 
-0.10.0 - TBD
+0.10.0 - May 3, 2018
 ------------------------
 * Added official support for Windows under Cygwin, Msys and WSL
 * Unofficial support included for Mingw
