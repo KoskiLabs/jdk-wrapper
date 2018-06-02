@@ -84,6 +84,11 @@ JDKW_BUILD=b11
 JDKW_TOKEN=d54c1d3a095b4ff2b6607d096fa80163
 ```
 
+You can override the directory by specifying the `JDKW_BASE_DIR` configuration either in the environment or on the command line. Since this
+value controls where to find the the `.jdkw` file it is the only configuration value that cannot be loaded from a file. For example:
+
+    > ./jdk-wrapper.sh JDKW_BASE_DIR=/usr/local/etc <CMD>
+
 Lastly, you can also specify configuration values in a `.jdkw` file in your home directory for per-user configuration (e.g. for OTN credentials).
 
 ```
@@ -102,7 +107,8 @@ Finally, any combination of these four forms of configuration is permissible. Th
 1) Command Line
 2) Environment
 3) .jdkw (working directory)
-4) ~/.jdkw (home directory)
+4) .jdkw (`jdk-wrapper.sh` directory)
+5) ~/.jdkw (home directory)
 
 The wrapper script will download and cache the specified JDK version and set `JAVA_HOME` appropriately before executing the specified command.
 
@@ -144,6 +150,13 @@ ignored for JDK 9. The `JDKW_JCE` flag only applies if `JDKW_DIST` is oracle.
 **IMPORTANT**: The `JDKW_TOKEN` is required for oracle release 8u121-b13 and newer
 except it is not required for oracle release JDK 9.0.1 but is required for
 other JDK 9 releases (as of 2/4/18). `JDKW_TOKEN` does not apply to zulu.
+
+Additionally, there is the `JDKW_BASE_DIR` configuration value which is only loaded
+from the environment or command line with the command line value having higher
+precedence. This configuration value overrides the path where to locate the
+`.jdkw` file which by default is the current working directory. This is useful
+in situations where you cannot `cd` into the project directory or if you have
+a shared `.jdkw` file for multiple projects.
 
 ### Version and Build
 

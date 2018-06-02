@@ -1,6 +1,11 @@
 JDK Wrapper Release Notes
 =========================
 
+0.11.0 - June 3, 2018
+------------------------
+* Added configuration support for base directory where to locate .jdkw by default in the current working directory
+* Tightened argument matching regular expressions to improve correctness and performance
+
 0.10.0 - May 3, 2018
 ------------------------
 * Added official support for Windows under Cygwin, Msys and WSL
