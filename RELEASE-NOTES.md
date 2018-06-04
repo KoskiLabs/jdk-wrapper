@@ -1,7 +1,7 @@
 JDK Wrapper Release Notes
 =========================
 
-0.11.0 - June 3, 2018
+0.11.0 - June 4, 2018
 ------------------------
 * Added configuration support for base directory where to locate .jdkw by default in the current working directory
 * Tightened argument matching regular expressions to improve correctness and performance
