@@ -214,37 +214,37 @@ curl_options=""
 # Default user agent
 otn_user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36'
 
-# Load properties file in home directory
-if [ -f "${HOME}/.jdkw" ]; then
-  . "${HOME}/.jdkw"
-fi
-
-# Load properties file in working directory
-if [ -f ".jdkw" ]; then
-  . "./.jdkw"
-fi
-
-# Load properties from environment
+# Process (but do not load) properties from environment
+env_configuration=
 l_fifo="${TMPDIR:-/tmp}/$$.$(rand)"
 safe_command "mkfifo \"${l_fifo}\""
 env > "${l_fifo}" &
 while IFS='=' read -r name value
 do
-  jdkw_arg=$(echo "${name}" | grep 'JDKW_.*')
-  if [ -n "${jdkw_arg}" ]; then
+  jdkw_arg=$(echo "${name}" | grep '^JDKW_.*')
+  jdkw_base_dir_arg=$(echo "${name}" | grep '^JDKW_BASE_DIR')
+  if [ -n "${jdkw_base_dir_arg}" ]; then
     eval "${name}=\"${value}\""
+  fi
+  if [ -n "${jdkw_arg}" ]; then
+    env_configuration="${env_configuration}${name}=\"${value}\" "
   fi
 done < "${l_fifo}"
 safe_command "rm \"${l_fifo}\""
 
-# Load properties from command line arguments
+# Process (but do not load) properties from command line arguments
 in_command=
 command=
+cmd_configuration=
 for arg in "$@"; do
   if [ -z ${in_command} ]; then
-    jdkw_arg=$(echo "${arg}" | grep 'JDKW_.*')
-    if [ -n "${jdkw_arg}" ]; then
+    jdkw_arg=$(echo "${arg}" | grep '^JDKW_.*')
+    jdkw_base_dir_arg=$(echo "${arg}" | grep '^JDKW_BASE_DIR.*')
+    if [ -n "${jdkw_base_dir_arg}" ]; then
       eval ${arg}
+    fi
+    if [ -n "${jdkw_arg}" ]; then
+      cmd_configuration="${cmd_configuration}${arg} "
     else
       in_command=1
     fi
@@ -259,6 +259,27 @@ for arg in "$@"; do
     command="${command} '${arg}'"
   fi
 done
+
+# Default base directory to current working directory
+if [ -z "${JDKW_BASE_DIR}" ]; then
+    JDKW_BASE_DIR="."
+fi
+
+# Load properties file in home directory
+if [ -f "${HOME}/.jdkw" ]; then
+  . "${HOME}/.jdkw"
+fi
+
+# Load properties file in base directory
+if [ -f "${JDKW_BASE_DIR}/.jdkw" ]; then
+  . "${JDKW_BASE_DIR}/.jdkw"
+fi
+
+# Load properties from environment
+eval "${env_configuration}"
+
+# Load properties from command line arguments
+eval "${cmd_configuration}"
 
 # Process configuration
 dist_oracle="oracle"
