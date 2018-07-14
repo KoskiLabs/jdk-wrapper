@@ -1,6 +1,10 @@
 JDK Wrapper Release Notes
 =========================
 
+0.11.1 - TBD
+------------------------
+* Removed unnecessary branch in `jdkw-impl.sh` checking non-existent variable `in_command`. No change in behavior.
+
 0.11.0 - June 4, 2018
 ------------------------
 * Added configuration support for base directory where to locate .jdkw by default in the current working directory
