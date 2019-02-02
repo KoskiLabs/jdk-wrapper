@@ -324,10 +324,14 @@ if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
 elif [ "${JDKW_DIST}" = "${dist_zulu}" ]; then
   architecture=$(uname -m)
   platform_macosx="macosx_x64"
+  libc=""
+  if [ -d "/etc/apk" ]; then
+    libc="_musl"
+  fi
   if [ "${architecture}" = "x86_64" ]; then
-    platform_linux="linux_x64"
+    platform_linux="linux${libc}_x64"
   else
-    platform_linux="linux_i686"
+    platform_linux="linux${libc}_i686"
   fi
   if [ "${architecture}" = "x86_64" ]; then
     platform_windows="win_x64"
