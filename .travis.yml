@@ -3,6 +3,9 @@ cache:
   - $HOME/.jdk
 sudo: false
 dist: xenial
+os:
+  - linux
+  - osx
 env:
   matrix:
   - EXPECTED_VERSION=1.6.0_45 JDKW_DIST=oracle JDKW_VERSION=6u45 JDKW_BUILD=b06 JDKW_EXTENSION=bin JDKW_VERBOSE=1
