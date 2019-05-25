@@ -499,7 +499,7 @@ if [ ! -f "${JDKW_TARGET}/${jdkid}/environment" ]; then
   download_result=-1
   if ! command -v curl > /dev/null; then
     log_err "Could not find curl; aborting..."
-    download_result=-1
+    exit 1
   fi
 
   # Do NOT execute with safe_command; undo operations below on failure
@@ -540,8 +540,10 @@ if [ ! -f "${JDKW_TARGET}/${jdkid}/environment" ]; then
       if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
         if [ -z "${JDKW_USERNAME}" ]; then
           log_err "No username specified; aborting..."
+          exit 1
         elif [ -z "${JDKW_PASSWORD}" ]; then
           log_err "No password specified; aborting..."
+          exit 1
         fi
 
         otn_signon "${JDKW_USERNAME}" "${JDKW_PASSWORD}"
