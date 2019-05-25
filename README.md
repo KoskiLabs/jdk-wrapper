@@ -203,8 +203,8 @@ The desired version of the build of the Zulu (aka Open) JDK may be determined as
 All the links contain a path element named `zulu{X}.{Y}.{Z}.{W}-jdk{A}.{B}.{C}`, for example `zulu8.25.0.3-jdk8.0.153` where `8.0.153` would
 be used as the value for `JDKW_VERSION` and `8.25.0.3` the value for `JDKW_BUILD`.
 
-If the Zulu version is folloed by `-ca` it designates a community build. Official releases (without `-ca`) are preferred, but JDK Wrapper
-will automatically try community builds as an alternate path. Specifically, `zulu{X}.{Y}.{Z}.{W}-ca-jdk{A}.{B}.{C}`.
+If the Zulu version is followed by `-ca` it designates a community build. Official releases (without `-ca`) are preferred, but JDK Wrapper
+will automatically try community builds as an alternate download. Specifically, `zulu{X}.{Y}.{Z}.{W}-ca-jdk{A}.{B}.{C}`.
 
 Finally, select 64-bit Linux builds are available for the [musl libc](https://www.musl-libc.org/) implementation. These are selected automatically
 if `ldd` indicates that the libc implementation is musl. This behavior can be overriden by setting `JDKW_LIBC` to either `musl` or `glibc`.

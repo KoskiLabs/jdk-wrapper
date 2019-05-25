@@ -75,12 +75,6 @@ otn_extract() {
   echo $(grep -o '<[^<]*input[^>]*.' "${l_file}" | grep 'type="hidden"' | sed '/.*name="\([^"]*\)"[ ]*value="\([^"]*\)".*/!d;s//\1=\2/' | xargs -I {} curl -s -o /dev/null -w %{url_effective} --get --data-urlencode "{}" "" | sed 's/\/?\([^\/?]*\)/\1\&/g')
 }
 
-otn_extract_by_name() {
-  l_file=$1
-  l_name=$2
-  echo $(grep -o '<[^<]*input[^>]*.' "${l_file}" | grep "name=\"${l_name}\"" | grep ''| sed '/.*name="\([^"]*\)"[ ]*value="\([^"]*\)".*/!d;s//\2/')
-}
-
 otn_signon() {
   l_username=$(encode "userid=$1")
   l_password=$(encode "pass=$2")
