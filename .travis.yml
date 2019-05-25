@@ -2,6 +2,7 @@ cache:
   directories:
   - $HOME/.jdk
 sudo: false
+language: bash
 dist: xenial
 os:
   - linux

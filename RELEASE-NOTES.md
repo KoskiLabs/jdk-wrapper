@@ -7,7 +7,7 @@ JDK Wrapper Release Notes
 * Removed unnecessary branch in `jdkw-impl.sh` checking non-existent variable `in_command`. No change in behavior.
 * Fixes to Oracle Technology Network (OTN) login process.
 * Oracle test cases all pass locally but no longer pass reliably under Travis; removed all automated Oracle tests.
-* Expanded Open JDK tests to include Mac and Windows platforms.
+* Expanded Travis automated tests to include Mac and Windows platforms.
 * Renamed latest and archive archive naming patterns to primary and alternate. No change in behavior.
 * Updated Open JDK Zulu download alternative path pattern to look for community builds denoted by archive pattern `zulu${JDKW_BUILD}-ca-jdk${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}`.
 * Added support for Open JDK Zulu JDKs using libMusl when available overridable by JDKW_LIBC.
