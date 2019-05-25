@@ -40,7 +40,6 @@ safe_command() {
   l_result=$?
   if [ "${l_result}" -ne "0" ]; then
     log_err "ERROR: ${l_command} failed with ${l_result}"
-    cat "${jdk_archive}"
     exit 1
   fi
 }
@@ -544,42 +543,17 @@ if [ ! -f "${JDKW_TARGET}/${jdkid}/environment" ]; then
       eval "jdk_url=\"${alternate_jdk_source}\""
       log_out "Attempting download of JDK from alternate ${jdk_url}"
 
-      if [ -z "${JDKW_USERNAME}" ]; then
-        log_err "No username specified; aborting..."
-      elif [ -z "${JDKW_PASSWORD}" ]; then
-        log_err "No password specified; aborting..."
-      fi
-
       if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
-        attempts_remaining=3
-        while
-          otn_signon "${JDKW_USERNAME}" "${JDKW_PASSWORD}"
+        if [ -z "${JDKW_USERNAME}" ]; then
+          log_err "No username specified; aborting..."
+        elif [ -z "${JDKW_PASSWORD}" ]; then
+          log_err "No password specified; aborting..."
+        fi
 
-          curl ${global_curl_options} -f -k -L -H "User-Agent:${otn_user_agent}" -b "${otn_cookie_jar}" -o "${jdk_archive}" "${jdk_url}"
-          download_result=$?
+        otn_signon "${JDKW_USERNAME}" "${JDKW_PASSWORD}"
 
-          is_html=`grep "<html>" "${jdk_archive}" | wc -l`
-          if [ ${download_result} = 0 ] && [ ${is_html} = 0 ]; then
-            log_out "Download success ${download_result}/${is_html}"
-            attempts_remaining=0
-
-            #log_out "Processing javascript redirect page..."
-            #redirect_data=$(otn_extract "${jdk_archive}")
-            # HACK: Oracle starting returning a Javascript redirect page even when authenticated!
-            # NOTE: The field values appears to be double encoded to boot.
-            #resource_url=$(otn_extract_by_name "${jdk_archive}" "resource_url")
-            #echo "resource_url=${resource_url}"
-            #decoded_resource_url=$(decode "${resource_url}")
-            #echo "decoded_resource_url=${decoded_resource_url}"
-            #double_decoded_resource_url=$(echo "${resource_url}" | sed 's@+@ @g;s@%@\\x@g' | xargs -0 printf "%b" | sed 's@+@ @g;s@%@\\x@g' | xargs -0 printf "%b")
-            #echo "double_decoded_resource_url=${double_decoded_resource_url}"
-            #curl ${global_curl_options} -f -k -L -H "User-Agent:${otn_user_agent}" -b "${otn_cookie_jar}" -o "${jdk_archive}" "${double_decoded_resource_url}"
-            #curl ${global_curl_options} -f -k -L -H "User-Agent:${otn_user_agent}" -b "${otn_cookie_jar}" -d "${redirect_data}" -o "${jdk_archive}" https://login.oracle.com/mysso/signon.jsp
-            #download_result=$?
-          fi
-          attempts_remaining="$((attempts_remaining-1))"
-          [ "${attempts_remaining}" -gt 0 ]
-        do :;  done
+        curl ${global_curl_options} -f -k -L -H "User-Agent:${otn_user_agent}" -b "${otn_cookie_jar}" -o "${jdk_archive}" "${jdk_url}"
+        download_result=$?
       else
         curl ${global_curl_options} -f -k -L -o "${jdk_archive}" "${jdk_url}"
         download_result=$?
