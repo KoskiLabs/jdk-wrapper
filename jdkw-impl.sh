@@ -90,35 +90,35 @@ otn_signon() {
 
   # Download the homepage
   log_out "OTN Login: Getting homepage..."
-  curl ${curl_options} -H "User-Agent:${otn_user_agent}" -k -L -c "${l_cookiejar}" -o /dev/null https://www.oracle.com
+  curl ${global_curl_options} -H "User-Agent:${otn_user_agent}" -k -L -c "${l_cookiejar}" -o /dev/null https://www.oracle.com
 
   # Download and parse the redirect
   log_out "OTN Login: Getting redirect..."
-  curl ${curl_options} -H "User-Agent:${otn_user_agent}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -o "${l_redirectform}" http://www.oracle.com/webapps/redirect/signon?nexturl=https://www.oracle.com/index.html?
+  curl ${global_curl_options} -H "User-Agent:${otn_user_agent}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -o "${l_redirectform}" http://www.oracle.com/webapps/redirect/signon?nexturl=https://www.oracle.com/index.html?
   redirect_data=$(otn_extract "${l_redirectform}")
 
   # Redirect to the sign-on form
   log_out "OTN Login: Getting sign-on..."
-  curl ${curl_options} -H "User-Agent:${otn_user_agent}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -o "${l_signon}" -d "${redirect_data}" https://login.oracle.com:443/oaam_server/oamLoginPage.jsp
+  curl ${global_curl_options} -H "User-Agent:${otn_user_agent}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -o "${l_signon}" -d "${redirect_data}" https://login.oracle.com:443/oaam_server/oamLoginPage.jsp
   signon_data=$(otn_extract "${l_signon}")
   signon_data="${signon_data}${l_username}&"
-  signon_data="${signon_data}&${l_password}&"
+  signon_data="${signon_data}${l_password}"
 
   # Post the sign-on form
   log_out "OTN Login: Posting login..."
-  curl ${curl_options} -H "User-Agent:${otn_user_agent}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -X POST -d "${signon_data}" --referer https://login.oracle.com:443/oaam_server/oamLoginPage.jsp -o /dev/null https://login.oracle.com:443/oaam_server/loginAuth.do
+  curl ${global_curl_options} -H "User-Agent:${otn_user_agent}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -d "${signon_data}" --referer https://login.oracle.com:443/oaam_server/oamLoginPage.jsp -o /dev/null https://login.oracle.com:443/oaam_server/loginAuth.do
 
   # Add the accept cookie to the jar
   printf ".oracle.com\tTRUE\t/\tFALSE\t0\toraclelicense\taccept-securebackup-cookie\n" >> "${l_cookiejar}"
 
   # Complete the sign-on
   log_out "OTN Login: Completing login..."
-  curl ${curl_options} -H "User-Agent:${otn_user_agent}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -X POST -d "${signon_data}" --referer https://login.oracle.com:443/oaam_server/loginAuth.do -o "${l_credsubmit}" https://login.oracle.com:443/oaam_server/authJump.do?jump=false
+  curl ${global_curl_options} -H "User-Agent:${otn_user_agent}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -d "${signon_data}" --referer https://login.oracle.com:443/oaam_server/loginAuth.do -o "${l_credsubmit}" https://login.oracle.com:443/oaam_server/authJump.do?jump=false
   credsubmit_data=$(otn_extract "${l_credsubmit}")
+  credsubmit_data_len=${#credsubmit_data}
 
   sleep 3
-  
-  curl ${curl_options} -H "User-Agent:${otn_user_agent}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -X POST -d "${credsubmit_data}" --referer https://login.oracle.com:443/oaam_server/authJump.do -o /dev/null https://login.oracle.com:443/oam/server/dap/cred_submit
+  curl ${global_curl_options} -H "User-Agent:${otn_user_agent}" -H "Content-Length:${credsubmit_data_len}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -d "${credsubmit_data}" --referer https://login.oracle.com:443/oaam_server/authJump.do -o /dev/null https://login.oracle.com:443/oam/server/dap/cred_submit
 
   # Return the filled cookie jar
   rm "${l_redirectform}"
@@ -153,20 +153,23 @@ extract_oracle() {
     JAVA_HOME="${JDKW_TARGET}/${jdkid}/Contents/Home"
   elif [ "${JDKW_EXTENSION}" = "exe" ]; then
     safe_command "chmod +x \"${jdk_archive}\""
-    os=$(uname -o)
-    if [ "${os}" = "Cygwin" ]; then
-      windows_target=$(cygpath -w \"${JDKW_TARGET}/${jdkid}\")
-      safe_command "cygstart -wait -o \"./${jdk_archive}\" /s ADDLOCAL=\"ToolsFeature,SourceFeature\" INSTALLDIR=\"${windows_target}\""
-    elif [ "${os}" = "Msys" ]; then
-      # Requires patch to address bug in Msys /bin/start
-      # See: https://github.com/Alexpux/MSYS2-packages/issues/1177
-      # See: https://sourceforge.net/p/mingw/bugs/1963/
-      windows_target=$(cygpath -w \"${JDKW_TARGET}/${jdkid}\")
-      safe_command "start /wait \"./${jdk_archive}\" //s ADDLOCAL=\"ToolsFeature,SourceFeature\" INSTALLDIR=\"${windows_target}\""
-    else
-      windows_target="${JDKW_TARGET}/${jdkid}"
-      safe_command "start /wait \"./${jdk_archive}\" /s ADDLOCAL=\"ToolsFeature,SourceFeature\" INSTALLDIR=\"${windows_target}\""
-    fi
+    case "$(uname -s)" in
+      CYGWIN*)
+        windows_target=$(cygpath -w \"${JDKW_TARGET}/${jdkid}\")
+        safe_command "cygstart -wait -o \"./${jdk_archive}\" /s ADDLOCAL=\"ToolsFeature,SourceFeature\" INSTALLDIR=\"${windows_target}\""
+        ;;
+      MSYS*)
+        # Requires patch to address bug in Msys /bin/start
+        # See: https://github.com/Alexpux/MSYS2-packages/issues/1177
+        # See: https://sourceforge.net/p/mingw/bugs/1963/
+        windows_target=$(cygpath -w \"${JDKW_TARGET}/${jdkid}\")
+        safe_command "start /wait \"./${jdk_archive}\" //s ADDLOCAL=\"ToolsFeature,SourceFeature\" INSTALLDIR=\"${windows_target}\""
+        ;;
+      *)
+        windows_target="${JDKW_TARGET}/${jdkid}"
+        safe_command "start /wait \"./${jdk_archive}\" /s ADDLOCAL=\"ToolsFeature,SourceFeature\" INSTALLDIR=\"${windows_target}\""
+        ;;
+    esac
     if [ ! -d "${JDKW_TARGET}/${jdkid}/bin" ]; then
       log_err "Installation failed"
       exit 1
@@ -208,11 +211,15 @@ extract_zulu() {
   fi
 }
 
+# Clear JAVA_HOME
+JAVA_HOME=""
+
 # Default curl options
-curl_options=""
+# e.g. set to "--verbose" to see lots of output; except where curl output is analyzed
+global_curl_options=""
 
 # Default user agent
-otn_user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36'
+otn_user_agent='Mozilla/5.0+(Macintosh;+Intel+Mac+OS+X+10_12_3)+AppleWebKit/537.36+(KHTML,+like+Gecko)+Chrome/57.0.2987.133+Safari/537.36'
 
 # Process (but do not load) properties from environment
 env_configuration=
@@ -284,6 +291,8 @@ eval "${cmd_configuration}"
 # Process configuration
 dist_oracle="oracle"
 dist_zulu="zulu"
+libc_musl="musl"
+libc_glibc="glibc"
 platform_macosx=""
 platform_linux=""
 platform_solaris=""
@@ -322,10 +331,23 @@ if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
     platform_windows="windows-i586"
   fi
 elif [ "${JDKW_DIST}" = "${dist_zulu}" ]; then
+  libc_variant=""
+  if [ -z "${JDKW_LIBC}" ]; then
+    if command -v ldd > /dev/null; then
+      musl_found=`ldd --version 2>&1 | grep 'musl' | wc -l`
+      if [ ${musl_found} -gt 0 ]; then
+        libc_variant="_musl"
+      fi
+    fi
+  elif [ "${JDKW_LIBC}" = "${libc_musl}" ]; then
+    libc_variant="_musl"
+  elif [ "${JDKW_LIBC}" = "${libc_glibc}" ]; then
+    libc_variant=""
+  fi
   architecture=$(uname -m)
   platform_macosx="macosx_x64"
   if [ "${architecture}" = "x86_64" ]; then
-    platform_linux="linux_x64"
+    platform_linux="linux${libc_variant}_x64"
   else
     platform_linux="linux_i686"
   fi
@@ -339,19 +361,20 @@ else
   exit 1
 fi
 if [ -z "${JDKW_PLATFORM}" ]; then
-  kernel=$(uname)
-  os=$(uname -o)
-  if [ "${kernel}" = "Darwin" ]; then
-    JDKW_PLATFORM="${platform_macosx}"
-  elif [ "${kernel}" = "Linux" ]; then
-    JDKW_PLATFORM="${platform_linux}"
-  elif [ "${kernel}" = "SunOS" ]; then
-    JDKW_PLATFORM="${platform_solaris}"
-  elif [ "${os}" = "Cygwin" ]; then
-    JDKW_PLATFORM="${platform_windows}"
-  elif [ "${os}" = "Msys" ]; then
-    JDKW_PLATFORM="${platform_windows}"
-  fi
+  case "$(uname -s)" in
+     Darwin)
+       JDKW_PLATFORM="${platform_macosx}"
+       ;;
+     Linux)
+       JDKW_PLATFORM="${platform_linux}"
+       ;;
+     SunOS)
+       JDKW_PLATFORM="${platform_solaris}"
+       ;;
+     CYGWIN*|MINGW32*|MSYS*)
+       JDKW_PLATFORM="${platform_windows}"
+       ;;
+  esac
   if [ -z "${JDKW_PLATFORM}" ]; then
     log_err "JDKW_PLATFORM value not provided or set and unable to determine a reasonable default or not supported by ${JDKW_DIST}"
     exit 1
@@ -394,7 +417,7 @@ if [ -z "${JDKW_EXTENSION}" ]; then
   log_out "Defaulted to extension ${JDKW_EXTENSION}"
 fi
 if [ -z "${JDKW_VERBOSE}" ]; then
-  curl_options="${curl_options} --silent"
+  global_curl_options="${global_curl_options} --silent"
 fi
 
 # Special rules
@@ -406,15 +429,15 @@ fi
 # Default JDK locations
 if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
   if [ "${java_major_version}" = "9" ] || [ "${java_major_version}" = "10" ]; then
-    latest_jdk_source='http://download.oracle.com/otn-pub/java/jdk/${JDKW_VERSION}+${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}_${JDKW_PLATFORM}_bin.${JDKW_EXTENSION}'
-    archived_jdk_source='http://download.oracle.com/otn/java/jdk/${JDKW_VERSION}+${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}_${JDKW_PLATFORM}_bin.${JDKW_EXTENSION}'
+    primary_jdk_source='https://download.oracle.com/otn-pub/java/jdk/${JDKW_VERSION}+${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}_${JDKW_PLATFORM}_bin.${JDKW_EXTENSION}'
+    alternate_jdk_source='https://download.oracle.com/otn/java/jdk/${JDKW_VERSION}+${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}_${JDKW_PLATFORM}_bin.${JDKW_EXTENSION}'
   else
-    latest_jdk_source='http://download.oracle.com/otn-pub/java/jdk/${JDKW_VERSION}-${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}'
-    archived_jdk_source='http://download.oracle.com/otn/java/jdk/${JDKW_VERSION}-${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}'
+    primary_jdk_source='https://download.oracle.com/otn-pub/java/jdk/${JDKW_VERSION}-${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}'
+    alternate_jdk_source='https://download.oracle.com/otn/java/jdk/${JDKW_VERSION}-${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}'
   fi
 else
-  latest_jdk_source='http://cdn.azul.com/zulu/bin/zulu${JDKW_BUILD}-jdk${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}'
-  archived_jdk_source=''
+  primary_jdk_source='http://cdn.azul.com/zulu/bin/zulu${JDKW_BUILD}-jdk${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}'
+  alternate_jdk_source='http://cdn.azul.com/zulu/bin/zulu${JDKW_BUILD}-ca-jdk${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}'
 fi
 
 # Ensure target directory exists
@@ -474,55 +497,75 @@ if [ ! -f "${JDKW_TARGET}/${jdkid}/environment" ]; then
 
   # Download archive
   download_result=-1
-  if command -v curl > /dev/null; then
-    # Do NOT execute with safe_command; undo operations below on failure
+  if ! command -v curl > /dev/null; then
+    log_err "Could not find curl; aborting..."
+    exit 1
+  fi
 
-    # 1) Attempt download from user specified source
-    if [ -n "${JDKW_SOURCE}" ]; then
-      eval "jdk_url=\"${JDKW_SOURCE}\""
-      log_out "Attempting download of JDK from ${jdk_url}"
-      curl ${curl_options} -f -j -k -L -H "Cookie: oraclelicense=accept-securebackup-cookie" -o "${jdk_archive}" "${jdk_url}"
-      download_result=$?
-    fi
+  # Do NOT execute with safe_command; undo operations below on failure
 
-    # 2) Attempt download from latest source
-    if [ ${download_result} != 0 ]; then
-      eval "jdk_url=\"${latest_jdk_source}\""
-      log_out "Attempting download of JDK from ${jdk_url}"
-      curl ${curl_options} -f -j -k -L -H "Cookie: oraclelicense=accept-securebackup-cookie" -o "${jdk_archive}" "${jdk_url}"
-      download_result=$?
-    fi
+  # 1) Attempt download from user specified source
+  if [ -n "${JDKW_SOURCE}" ]; then
+    eval "jdk_url=\"${JDKW_SOURCE}\""
+    log_out "Attempting download of JDK from user specified ${jdk_url}"
+    curl_out=$(curl ${global_curl_options} -f -j -k -L -o "${jdk_archive}" "${jdk_url}")
+    download_result=$?
+  fi
 
-    # 3) Attempt download from archive source (only applies to oracle)
+  # 2) Attempt download from primary source
+  if [ ${download_result} != 0 ]; then
+    eval "jdk_url=\"${primary_jdk_source}\""
+    log_out "Attempting download of JDK from primary ${jdk_url}"
+
+    # HACK: Oracle started returning 200's on permission denied
     if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
-      if [ ${download_result} != 0 ]; then
-        eval "jdk_url=\"${archived_jdk_source}\""
-        log_out "Attempting download of JDK from ${jdk_url}"
+      curl_out=`curl ${global_curl_options} --verbose -f -j -k -L -H "Cookie:oraclelicense=accept-securebackup-cookie" -o "${jdk_archive}" "${jdk_url}" 2>&1 | grep '/errors/'`
+      download_result=$?
+
+      if [ -n "${curl_out}" ]; then
+        download_result=1
+      fi
+    else
+      curl ${global_curl_options} --verbose -f -j -k -L -o "${jdk_archive}" "${jdk_url}"
+      download_result=$?
+    fi
+  fi
+
+  # 3) Attempt download from alternate source
+  if [ -n "${alternate_jdk_source}" ]; then
+    if [ ${download_result} != 0 ]; then
+      eval "jdk_url=\"${alternate_jdk_source}\""
+      log_out "Attempting download of JDK from alternate ${jdk_url}"
+
+      if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
         if [ -z "${JDKW_USERNAME}" ]; then
           log_err "No username specified; aborting..."
+          exit 1
         elif [ -z "${JDKW_PASSWORD}" ]; then
           log_err "No password specified; aborting..."
-        else
-          otn_signon "${JDKW_USERNAME}" "${JDKW_PASSWORD}"
-          log_out "Initiating authenticated download..."
-          curl ${curl_options} -f -k -L -H "User-Agent:${otn_user_agent}" -b "${otn_cookie_jar}" -o "${jdk_archive}" "${jdk_url}"
-          download_result=$?
+          exit 1
         fi
+
+        otn_signon "${JDKW_USERNAME}" "${JDKW_PASSWORD}"
+
+        curl ${global_curl_options} -f -k -L -H "User-Agent:${otn_user_agent}" -b "${otn_cookie_jar}" -o "${jdk_archive}" "${jdk_url}"
+        download_result=$?
+      else
+        curl ${global_curl_options} -f -k -L -o "${jdk_archive}" "${jdk_url}"
+        download_result=$?
       fi
     fi
-  else
-    log_err "Could not find curl; aborting..."
-    download_result=-1
   fi
-  if [ ${download_result} != 0 ]; then
-    log_err "Download failed!"
+
+  if [ ${download_result} = 0 ]; then
+    log_out "Unpacking ${JDKW_EXTENSION}..."
+    eval "extract_${JDKW_DIST}"
+  else
+    log_err "Download or extract failed!"
     safe_command "rm -rf \"${JDKW_TARGET}/${jdkid}\""
     exit 1
   fi
 
-  # Extract based on extension
-  log_out "Unpacking ${JDKW_EXTENSION}..."
-  eval "extract_${JDKW_DIST}"
   printf "export JAVA_HOME=\"%s\"\n" "${JAVA_HOME}" > "${JDKW_TARGET}/${jdkid}/environment"
   printf "export PATH=\"\$JAVA_HOME/bin:\$PATH\"\n" >> "${JDKW_TARGET}/${jdkid}/environment"
 
@@ -549,7 +592,7 @@ if [ ! -f "${JDKW_TARGET}/${jdkid}/environment" ]; then
     download_result=
     if command -v curl > /dev/null; then
       # Do NOT execute with safe_command; undo operations below on failure
-      curl ${curl_options} -j -k -L -H "Cookie: gpw_e24=xxx; oraclelicense=accept-securebackup-cookie;" -o "${jce_archive}" "${jce_url}"
+      curl ${global_curl_options} -j -k -L -H "Cookie: gpw_e24=xxx; oraclelicense=accept-securebackup-cookie;" -o "${jce_archive}" "${jce_url}"
       download_result=$?
     else
       log_err "Could not find curl; aborting..."
@@ -592,4 +635,9 @@ fi
 # Execute the provided command
 log_out "Executing: ${command}"
 eval ${command}
+
+if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
+  printf "Deprecation Notice: Support for wrapping Oracle JDK may be removed in a future release. Please migrate to Open JDK Zulu.\n"
+fi
+
 exit $?

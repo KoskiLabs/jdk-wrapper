@@ -124,6 +124,7 @@ Regardless of how the configuration is specified it supports the following:
 * JDKW_JCE : Include Java Cryptographic Extensions (e.g. false). Optional.
 * JDKW_TARGET : Target directory (e.g. '/var/tmp'). Optional.
 * JDKW_PLATFORM : Platform specifier (e.g. 'linux-x64'). Optional.
+* JDKW_LIBC : Libc implementation (e.g. 'musl'). Optional.
 * JDKW_EXTENSION : Archive extension (e.g. 'tar.gz'). Optional.
 * JDKW_SOURCE : Source url format for download. Optional.
 * JDKW_USERNAME: Username for OTN sign-on. Optional.
@@ -133,6 +134,7 @@ Regardless of how the configuration is specified it supports the following:
 The default JDK Wrapper release is `latest`.<br/>
 The default target directory is `~/.jdk`.<br/>
 The default platform is detected using `uname`.<br/>
+The default libc is detected using `ldd`.<br/>
 By default the Java Cryptographic Extensions are included*.<br/>
 By default the extension depends on the distribution and platform type.<br/>
 * `dmg` is used for Darwin (MacOS)
@@ -146,6 +148,9 @@ By default the wrapper does not log.
 NOTE: As of JDK version 9 the Java Cryptographic Extensions are bundled with the
 JDK and are not downloaded separately. Therefore, the value of JDKW_JCE is
 ignored for JDK 9. The `JDKW_JCE` flag only applies if `JDKW_DIST` is oracle.
+
+NOTE: The libc implementation only applies to select version of the Zulu
+distribution on the 64-bit Linux platform. See [Zulu Releases](http://static.azul.com/zulu/bin/).
 
 **IMPORTANT**: The `JDKW_TOKEN` is required for oracle release 8u121-b13 and newer
 except it is not required for oracle release JDK 9.0.1 but is required for
@@ -197,6 +202,14 @@ The desired version of the build of the Zulu (aka Open) JDK may be determined as
 
 All the links contain a path element named `zulu{X}.{Y}.{Z}.{W}-jdk{A}.{B}.{C}`, for example `zulu8.25.0.3-jdk8.0.153` where `8.0.153` would
 be used as the value for `JDKW_VERSION` and `8.25.0.3` the value for `JDKW_BUILD`.
+
+If the Zulu version is followed by `-ca` it designates a community build. Official releases (without `-ca`) are preferred, but JDK Wrapper
+will automatically try community builds as an alternate download. Specifically, `zulu{X}.{Y}.{Z}.{W}-ca-jdk{A}.{B}.{C}`.
+
+Finally, select 64-bit Linux builds are available for the [musl libc](https://www.musl-libc.org/) implementation. These are selected automatically
+if `ldd` indicates that the libc implementation is musl. This behavior can be overriden by setting `JDKW_LIBC` to either `musl` or `glibc`.
+
+See [Zulu Release Notes](https://docs.azul.com/zulu/zulurelnotes/Content/Zulu_ReleaseNotes.pdf) for more information.
 
 ### Caching
 
