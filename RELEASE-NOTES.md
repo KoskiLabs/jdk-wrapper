@@ -1,7 +1,7 @@
 JDK Wrapper Release Notes
 =========================
 
-0.12.0 - TBD
+0.12.0 - June 3, 2019
 ------------------------
 * Added notice for future *deprecation* of support for Oracle JDKs in JDK Wrapper. No change in behavior.
 * Removed unnecessary branch in `jdkw-impl.sh` checking non-existent variable `in_command`. No change in behavior.
