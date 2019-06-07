@@ -1,6 +1,10 @@
 JDK Wrapper Release Notes
 =========================
 
+0.12.1 - June 7, 2019
+------------------------
+* Fixed bug in jdkw-impl.sh returning incorrect result code.
+
 0.12.0 - June 3, 2019
 ------------------------
 * Added notice for future *deprecation* of support for Oracle JDKs in JDK Wrapper. No change in behavior.
