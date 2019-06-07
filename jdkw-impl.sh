@@ -635,9 +635,10 @@ fi
 # Execute the provided command
 log_out "Executing: ${command}"
 eval ${command}
+result=$?
 
 if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
   printf "Deprecation Notice: Support for wrapping Oracle JDK may be removed in a future release. Please migrate to Open JDK Zulu.\n"
 fi
 
-exit $?
+exit ${result}
