@@ -1,6 +1,10 @@
 JDK Wrapper Release Notes
 =========================
 
+0.12.2 - November 18, 2019
+------------------------
+* Fixed bug in jdkw-impl.sh where path was not quoted.
+
 0.12.1 - June 7, 2019
 ------------------------
 * Fixed bug in jdkw-impl.sh returning incorrect result code.
