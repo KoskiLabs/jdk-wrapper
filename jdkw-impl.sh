@@ -622,7 +622,7 @@ if [ ! -f "${JDKW_TARGET}/${jdkid}/environment" ]; then
 
   # Installation complete
   generate_manifest_checksum "${JDKW_TARGET}/${jdkid}" > "${manifest}"
-  safe_command "cd '${last_dir}'"
+  safe_command "cd \"${last_dir}\""
 fi
 
 # Setup the environment
