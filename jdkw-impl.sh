@@ -211,7 +211,7 @@ extract_zulu() {
   fi
 }
 
-extract_adpt() {
+extract_adopt() {
   if [ "${JDKW_EXTENSION}" = "tar.gz" ]; then
     safe_command "tar -xzf \"${jdk_archive}\""
     safe_command "rm -f \"${jdk_archive}\""
@@ -227,7 +227,7 @@ extract_adpt() {
     safe_command "rm -f \"${jdk_archive}\""
     JAVA_HOME="${JDKW_TARGET}/${jdkid}/${jdk_dir}"
   else
-    log_err "Unsupported adpt extension ${JDKW_EXTENSION}"
+    log_err "Unsupported adopt extension ${JDKW_EXTENSION}"
     exit 1
   fi
 }
@@ -541,7 +541,7 @@ if [ ! -f "${JDKW_TARGET}/${jdkid}/environment" ]; then
   if [ -n "${JDKW_TOKEN}" ]; then
     token_segment="${JDKW_TOKEN}/"
   fi
-  jdk_archive="jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}"
+  jdk_archive=$(echo "jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}" | tr / _)
 
   # Download archive
   download_result=-1
