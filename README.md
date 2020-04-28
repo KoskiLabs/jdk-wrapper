@@ -52,6 +52,7 @@ oracle       | `9.0.1`             | [sample](https://raw.githubusercontent.com/
 oracle       | `9.0.4` to current  | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.9.0.4-current.jdkw)
 oracle       | `10.0.1`            | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.10.0.1-current.jdkw)
 zulu         | any available       | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/zulu.any.jdkw)
+adopt        | [any of these](https://api.adoptopenjdk.net/v3/info/release_names?release_type=ga&vendor=adoptopenjdk) | [sample openj9](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/adopt.openj9.11.jdkw), [sample hotspot](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/adopt.hotspot.8.jdkw)
 
 Usage
 -----
@@ -116,7 +117,7 @@ The wrapper script will download and cache the specified JDK version and set `JA
 
 Regardless of how the configuration is specified it supports the following:
 
-* JDKW_DIST : Distribution type (e.g. oracle, zulu). Required.
+* JDKW_DIST : Distribution type (e.g. oracle, zulu, adopt). Required.
 * JDKW_VERSION : Version identifier (e.g. '8u65'). Required.
 * JDKW_BUILD : Build identifier (e.g. 'b17'). Required.
 * JDKW_TOKEN : Download token (e.g. e9e7ea248e2c4826b92b3f075a80e441). Optional.
@@ -124,6 +125,7 @@ Regardless of how the configuration is specified it supports the following:
 * JDKW_JCE : Include Java Cryptographic Extensions (e.g. false). Optional.
 * JDKW_TARGET : Target directory (e.g. '/var/tmp'). Optional.
 * JDKW_PLATFORM : Platform specifier (e.g. 'linux-x64'). Optional.
+* JVM_IMPL : Specifies the jvm implementation of the jdk (must be one of 'hotspot' or 'openj9'). Mandatory, if JDKW_DIST is 'adopt'.
 * JDKW_LIBC : Libc implementation (e.g. 'musl'). Optional.
 * JDKW_EXTENSION : Archive extension (e.g. 'tar.gz'). Optional.
 * JDKW_SOURCE : Source url format for download. Optional.
@@ -210,6 +212,17 @@ Finally, select 64-bit Linux builds are available for the [musl libc](https://ww
 if `ldd` indicates that the libc implementation is musl. This behavior can be overriden by setting `JDKW_LIBC` to either `musl` or `glibc`.
 
 See [Zulu Release Notes](https://docs.azul.com/zulu/zulurelnotes/Content/Zulu_ReleaseNotes.pdf) for more information.
+
+#### AdoptOpenJDK
+
+The desired version of the build of the AdoptOpenJDK can be one of the [Release List](https://api.adoptopenjdk.net/v3/info/release_names?release_type=ga&vendor=adoptopenjdk).
+
+All releases of JDK 8 and earlier have the format jdk{X}u{Y}-b{Z}. Everything before the minus corresponds to `JDKW_VERSION` and everything after the minus corresponds to `JDKW_BUILD`.
+
+All releases of JDK 8 and earlier have the format jdk-{X}+{Z}. Everything before the plus corresponds to `JDKW_VERSION` and everything after the plus corresponds to `JDKW_BUILD`.
+
+Note, that AdoptOpenJDK comes in two variants, e.g. Hotspot (the default jvm implementation) and [OpenJ9](https://www.eclipse.org/openj9/).
+Therefore, `JVM_IMPL` needs to be set, if you choose AdoptOpenJDK. If you are not sure what to use, choose Hotspot.
 
 ### Caching
 

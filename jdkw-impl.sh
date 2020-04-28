@@ -211,6 +211,27 @@ extract_zulu() {
   fi
 }
 
+extract_adopt() {
+  if [ "${JDKW_EXTENSION}" = "tar.gz" ]; then
+    safe_command "tar -xzf \"${jdk_archive}\""
+    safe_command "rm -f \"${jdk_archive}\""
+    package=$(ls | grep "jdk.*" | head -n 1)
+    if [ "${JDKW_PLATFORM}" = "${platform_macosx}" ]; then
+      JAVA_HOME="${JDKW_TARGET}/${jdkid}/${package}/Contents/Home"
+    else
+      JAVA_HOME="${JDKW_TARGET}/${jdkid}/${package}"
+    fi
+  elif [ "${JDKW_EXTENSION}" = "zip" ]; then
+    safe_command "unzip \"${jdk_archive}\""
+    jdk_dir=$(find . -maxdepth 1 -type d -name 'jdk*' -printf '%P')
+    safe_command "rm -f \"${jdk_archive}\""
+    JAVA_HOME="${JDKW_TARGET}/${jdkid}/${jdk_dir}"
+  else
+    log_err "Unsupported adopt extension ${JDKW_EXTENSION}"
+    exit 1
+  fi
+}
+
 # Clear JAVA_HOME
 JAVA_HOME=""
 
@@ -291,12 +312,14 @@ eval "${cmd_configuration}"
 # Process configuration
 dist_oracle="oracle"
 dist_zulu="zulu"
+dist_adopt="adopt"
 libc_musl="musl"
 libc_glibc="glibc"
 platform_macosx=""
 platform_linux=""
 platform_solaris=""
 platform_windows=""
+
 if [ -z "${JDKW_VERSION}" ]; then
   log_err "Required JDKW_VERSION (e.g. 8u65) value not provided or set"
   exit 1
@@ -304,6 +327,10 @@ fi
 java_major_version=$(echo "${JDKW_VERSION}" | sed 's/\([0-9]*\).*/\1/')
 if [ -z "${JDKW_BUILD}" ]; then
   log_err "Required JDKW_BUILD (e.g. b17) value not provided or set"
+  exit 1
+fi
+if [ "${JDKW_DIST}" = "${dist_adopt}" ] && [ -z "${JVM_IMPL}" ]; then
+  log_err "Required JVM_IMPL (e.g. hotspot) value not provided or set"
   exit 1
 fi
 if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
@@ -356,6 +383,16 @@ elif [ "${JDKW_DIST}" = "${dist_zulu}" ]; then
   else
     platform_windows="win_i686"
   fi
+elif [ "${JDKW_DIST}" = "${dist_adopt}" ]; then
+  architecture=$(uname -m)
+  if [ "${architecture}" = "x86_64" ]; then
+    platform_macosx="mac/x64"
+    platform_linux="linux/x64"
+    platform_windows="windows/x64"
+  else
+    platform_linux="linux/x32"
+    platform_windows="windows/x32"
+  fi
 else
   log_err "Unsupported distribution ${JDKW_DIST}"
   exit 1
@@ -381,7 +418,7 @@ if [ -z "${JDKW_PLATFORM}" ]; then
   fi
   log_out "Detected platform ${JDKW_PLATFORM}"
 fi
-if [ "${JDKW_DIST}" = "${DIST_ORACLE}" ]; then
+if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
   if [ "${java_major_version}" = "6" ] || [ "${java_major_version}" = "9" ] || [ "${java_major_version}" = "10" ]; then
     JDKW_JCE=
     log_out "Forced to no jce"
@@ -398,13 +435,13 @@ if [ -z "${JDKW_TARGET}" ]; then
   log_out "Defaulted to target ${JDKW_TARGET}"
 fi
 default_extension="tar.gz"
-if [ "${JDKW_PLATFORM}" = "${platform_macosx}" ]; then
+if [ "${JDKW_PLATFORM}" = "${platform_macosx}" ] && [ "${JDKW_DIST}" != "${dist_adopt}" ] ; then
   default_extension="dmg"
 fi
 if [ "${JDKW_PLATFORM}" = "${platform_windows}" ]; then
   if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
     default_extension="exe"
-  elif [ "${JDKW_DIST}" = "${dist_zulu}" ]; then
+  else
     default_extension="zip"
   fi
 elif [ "${JDKW_PLATFORM}" = "${platform_linux}" ]; then
@@ -435,9 +472,17 @@ if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
     primary_jdk_source='https://download.oracle.com/otn-pub/java/jdk/${JDKW_VERSION}-${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}'
     alternate_jdk_source='https://download.oracle.com/otn/java/jdk/${JDKW_VERSION}-${JDKW_BUILD}/${token_segment}jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}'
   fi
-else
+elif [ "${JDKW_DIST}" = "${dist_zulu}" ]; then
   primary_jdk_source='http://cdn.azul.com/zulu/bin/zulu${JDKW_BUILD}-jdk${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}'
   alternate_jdk_source='http://cdn.azul.com/zulu/bin/zulu${JDKW_BUILD}-ca-jdk${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}'
+elif [ "${JDKW_DIST}" = "${dist_adopt}" ]; then
+  if [ "${java_major_version}" = "8" ]; then
+    release_name="jdk${JDKW_VERSION}-${JDKW_BUILD}"
+  else
+    release_name="jdk-${JDKW_VERSION}+${JDKW_BUILD}"
+  fi
+
+  primary_jdk_source='https://api.adoptopenjdk.net/v3/binary/version/${release_name}/${JDKW_PLATFORM}/jdk/${JVM_IMPL}/normal/adoptopenjdk'
 fi
 
 # Ensure target directory exists
@@ -448,6 +493,9 @@ fi
 
 # Build jdk identifier
 jdkid="${JDKW_DIST}_${JDKW_VERSION}_${JDKW_BUILD}_${JDKW_PLATFORM}"
+if [ "${JDKW_DIST}" = "${dist_adopt}" ]; then
+  jdkid="${jdkid}_${JVM_IMPL}"
+fi
 if [ "${JDKW_JCE}" = "true" ]; then
   jdkid="${jdkid}_jce"
 fi
@@ -493,7 +541,7 @@ if [ ! -f "${JDKW_TARGET}/${jdkid}/environment" ]; then
   if [ -n "${JDKW_TOKEN}" ]; then
     token_segment="${JDKW_TOKEN}/"
   fi
-  jdk_archive="jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}"
+  jdk_archive=$(echo "jdk-${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}" | tr / _)
 
   # Download archive
   download_result=-1
@@ -638,7 +686,7 @@ eval ${command}
 result=$?
 
 if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
-  printf "Deprecation Notice: Support for wrapping Oracle JDK may be removed in a future release. Please migrate to Open JDK Zulu.\n"
+  printf "Deprecation Notice: Support for wrapping Oracle JDK may be removed in a future release. Please migrate to Open JDK Zulu or AdoptOpenJDK.\n"
 fi
 
 exit ${result}

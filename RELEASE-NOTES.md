@@ -1,6 +1,10 @@
 JDK Wrapper Release Notes
 =========================
 
+0.13.0 - April 27, 2020
+------------------------
+* Added support for [Adopt OpenJDK](https://adoptopenjdk.net/) -- thanks to [breucode](https://github.com/breucode)
+
 0.12.2 - November 18, 2019
 ------------------------
 * Fixed bug in jdkw-impl.sh where path was not quoted.
