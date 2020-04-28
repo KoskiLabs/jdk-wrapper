@@ -459,7 +459,7 @@ fi
 
 # Special rules
 if [ "${JDKW_PLATFORM}" = "${platform_macosx}" ] && [ "${JDKW_DIST}" = "${dist_oracle}" ] && [ "${java_major_version}" = "6" ] ; then
-  log_err "JDK${java_major_version} from ${dist_oracle} is not supported on ${os_macosx}_${platform_macosx}"
+  log_err "JDK${java_major_version} from ${dist_oracle} is not supported on ${platform_macosx}"
   exit 1
 fi
 
