@@ -1,6 +1,10 @@
 JDK Wrapper Release Notes
 =========================
 
+0.13.2 - May 9, 2020
+------------------------
+* Fixed bug introduced during clean-up of `0.13.1`. 
+
 0.13.1 - May 8, 2020
 ------------------------
 * Fixed terminating child processes when jdk-wrapper is running as a background task.
