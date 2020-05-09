@@ -19,13 +19,13 @@
 
 log_err() {
   l_prefix=$(date  +'%H:%M:%S')
-  printf "[%s] %s\n" "${l_prefix}" "$@" 1>&2;
+  printf "[%s] %s\\n" "${l_prefix}" "$@" 1>&2;
 }
 
 log_out() {
   if [ -n "${JDKW_VERBOSE}" ]; then
     l_prefix=$(date  +'%H:%M:%S')
-    printf "[%s] %s\n" "${l_prefix}" "$@"
+    printf "[%s] %s\\n" "${l_prefix}" "$@"
   fi
 }
 
@@ -109,7 +109,7 @@ otn_signon() {
   curl ${global_curl_options} -H "User-Agent:${otn_user_agent}" -k -L -c "${l_cookiejar}" -b "${l_cookiejar}" -d "${signon_data}" --referer https://login.oracle.com:443/oaam_server/oamLoginPage.jsp -o /dev/null https://login.oracle.com:443/oaam_server/loginAuth.do
 
   # Add the accept cookie to the jar
-  printf ".oracle.com\tTRUE\t/\tFALSE\t0\toraclelicense\taccept-securebackup-cookie\n" >> "${l_cookiejar}"
+  printf ".oracle.com\\tTRUE\\t/\\tFALSE\\t0\\toraclelicense\taccept-securebackup-cookie\\n" >> "${l_cookiejar}"
 
   # Complete the sign-on
   log_out "OTN Login: Completing login..."
@@ -280,7 +280,7 @@ for arg in "$@"; do
   if [ ! -z ${in_command} ]; then
     case "${arg}" in
       *\'*)
-         arg=`printf "%s" "$arg" | sed "s/'/'\"'\"'/g"`
+         arg=$(printf "%s" "$arg" | sed "s/'/'\"'\"'/g")
          ;;
       *) : ;;
     esac
@@ -361,7 +361,7 @@ elif [ "${JDKW_DIST}" = "${dist_zulu}" ]; then
   libc_variant=""
   if [ -z "${JDKW_LIBC}" ]; then
     if command -v ldd > /dev/null; then
-      musl_found=`ldd --version 2>&1 | grep 'musl' | wc -l`
+      musl_found=$(ldd --version 2>&1 | grep 'musl' | wc -l)
       if [ ${musl_found} -gt 0 ]; then
         libc_variant="_musl"
       fi
@@ -567,7 +567,7 @@ if [ ! -f "${JDKW_TARGET}/${jdkid}/environment" ]; then
 
     # HACK: Oracle started returning 200's on permission denied
     if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
-      curl_out=`curl ${global_curl_options} --verbose -f -j -k -L -H "Cookie:oraclelicense=accept-securebackup-cookie" -o "${jdk_archive}" "${jdk_url}" 2>&1 | grep '/errors/'`
+      curl_out=$(curl ${global_curl_options} --verbose -f -j -k -L -H "Cookie:oraclelicense=accept-securebackup-cookie" -o "${jdk_archive}" "${jdk_url}" 2>&1 | grep '/errors/')
       download_result=$?
 
       if [ -n "${curl_out}" ]; then
@@ -614,8 +614,8 @@ if [ ! -f "${JDKW_TARGET}/${jdkid}/environment" ]; then
     exit 1
   fi
 
-  printf "export JAVA_HOME=\"%s\"\n" "${JAVA_HOME}" > "${JDKW_TARGET}/${jdkid}/environment"
-  printf "export PATH=\"\$JAVA_HOME/bin:\$PATH\"\n" >> "${JDKW_TARGET}/${jdkid}/environment"
+  printf "export JAVA_HOME=\"%s\"\\n" "${JAVA_HOME}" > "${JDKW_TARGET}/${jdkid}/environment"
+  printf "export PATH=\"\$JAVA_HOME/bin:\$PATH\"\\n" >> "${JDKW_TARGET}/${jdkid}/environment"
 
   # Download and install matching JCE version
   if [ "${JDKW_JCE}" = "true" ]; then
@@ -681,12 +681,31 @@ fi
 . "${JDKW_TARGET}/${jdkid}/environment"
 
 # Execute the provided command
-log_out "Executing: ${command}"
-eval ${command}
-result=$?
+eval "set -- ${command}"
+if [ -n "${JDKW_VERBOSE}" ]; then
+  log_out "Executing: $*"
+fi
+
+# Run the command in the backround (with all the trouble that entails)
+# NOTE: Alternatively convert this to an exec if we don't need to output the
+# oracle deprecation at the end; e.g. make that a pre-run warning with delay.
+trap 'kill -TERM ${child_pid}' TERM INT
+"$@" &
+command_pid=$!
+wait ${command_pid} > /dev/null 2>&1
+wait_result=$?
+if [ ${wait_result} -ne 127 ]; then
+  result=${wait_result}
+fi
+trap - TERM INT
+wait ${command_pid} > /dev/null 2>&1
+wait_result=$?
+if [ ${wait_result} -ne 127 ]; then
+  result=${wait_result}
+fi
 
 if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
-  printf "Deprecation Notice: Support for wrapping Oracle JDK may be removed in a future release. Please migrate to Open JDK Zulu or AdoptOpenJDK.\n"
+  printf "Deprecation Notice: Support for wrapping Oracle JDK may be removed in a future release. Please migrate to Open JDK Zulu or AdoptOpenJDK.\\n"
 fi
 
 exit ${result}

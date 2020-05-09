@@ -1,6 +1,11 @@
 JDK Wrapper Release Notes
 =========================
 
+0.13.1 - May 8, 2020
+------------------------
+* Fixed terminating child processes when jdk-wrapper is running as a background task.
+* Cleaned up some (but not all) suggestions from `shellcheck`.
+
 0.13.0 - April 27, 2020
 ------------------------
 * Added support for [Adopt OpenJDK](https://adoptopenjdk.net/) -- thanks to [breucode](https://github.com/breucode)
