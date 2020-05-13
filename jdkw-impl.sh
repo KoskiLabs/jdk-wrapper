@@ -689,7 +689,7 @@ fi
 # Run the command in the backround (with all the trouble that entails)
 # NOTE: Alternatively convert this to an exec if we don't need to output the
 # oracle deprecation at the end; e.g. make that a pre-run warning with delay.
-trap 'kill -TERM ${child_pid}' TERM INT
+trap 'kill -TERM ${command_pid}' TERM INT
 "$@" &
 command_pid=$!
 wait ${command_pid} > /dev/null 2>&1
