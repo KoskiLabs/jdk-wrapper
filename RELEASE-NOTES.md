@@ -1,6 +1,10 @@
 JDK Wrapper Release Notes
 =========================
 
+0.13.4 - May 13, 2020
+------------------------
+* Fixing wrapper and implementation to allow user input to background child process.
+
 0.13.3 - May 13, 2020
 ------------------------
 * Fixed bug introduced during clean-up of `0.13.1` not forwarding signals to child process. 

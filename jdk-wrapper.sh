@@ -180,9 +180,11 @@ download_if_needed "${jdkw_wrapper}" "${jdkw_path}"
 # Run the command in the backround (with all the trouble that entails)
 # NOTE: Alternatively convert this to an exec if we don't need to output the
 # wrapper mismatch at the end; e.g. make that a hard precondition to running.
+set -m
 trap 'kill -TERM ${impl_pid}' TERM INT
 "${jdkw_path}/${jdkw_impl}" "$@" &
 impl_pid=$!
+fg
 wait ${impl_pid} > /dev/null 2>&1
 wait_result=$?
 if [ ${wait_result} -ne 127 ]; then
