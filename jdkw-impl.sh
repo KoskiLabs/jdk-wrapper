@@ -689,9 +689,11 @@ fi
 # Run the command in the backround (with all the trouble that entails)
 # NOTE: Alternatively convert this to an exec if we don't need to output the
 # oracle deprecation at the end; e.g. make that a pre-run warning with delay.
+set -m
 trap 'kill -TERM ${command_pid}' TERM INT
 "$@" &
 command_pid=$!
+fg
 wait ${command_pid} > /dev/null 2>&1
 wait_result=$?
 if [ ${wait_result} -ne 127 ]; then
