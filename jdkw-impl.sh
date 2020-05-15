@@ -47,10 +47,12 @@ safe_command() {
 generate_manifest_checksum() {
   l_path=$1
   checksum_exec=""
+  checksum_args=""
   if command -v sha256sum > /dev/null; then
       checksum_exec="sha256sum"
   elif command -v shasum > /dev/null; then
-    checksum_exec="shasum -a 256"
+    checksum_exec="shasum"
+    checksum_args="-a 256"
   elif command -v sha1sum > /dev/null; then
     checksum_exec="sha1sum"
   elif command -v md5 > /dev/null; then
@@ -61,7 +63,7 @@ generate_manifest_checksum() {
     exit 1
   fi
   l_escaped_path=$(printf '%s' "${l_path}" | sed -e 's@/@\\\/@g')
-  echo $(find "${l_path}" -type f \( -iname "*" ! -iname "manifest.checksum" \) -print0 |  xargs -0 ls -l | awk '{print $5, $9}' | sort | sed 's/^\([0-9]*\) '"${l_escaped_path}"'\/\(.*\)$/\1 \2/' | ${checksum_exec})
+  echo $(find "${l_path}" -type f \( -iname "*" ! -iname "manifest.checksum" \) -print0 |  xargs -0 ls -l | awk '{print $5, $9}' | sort | sed 's/^\([0-9]*\) '"${l_escaped_path}"'\/\(.*\)$/\1 \2/' | ${checksum_exec} ${checksum_args})
 }
 
 encode() {
