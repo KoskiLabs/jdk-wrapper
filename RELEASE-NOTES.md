@@ -1,6 +1,10 @@
 JDK Wrapper Release Notes
 =========================
 
+0.13.5 - May 15, 2020
+------------------------
+* Remove (fix) quoting around checksum generation and correctly support arguments to `shasum`  -- thanks to [speezepearson](https://github.com/speezepearson)
+
 0.13.4 - May 13, 2020
 ------------------------
 * Fixing wrapper and implementation to allow user input to background child process.
