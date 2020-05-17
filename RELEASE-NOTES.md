@@ -1,6 +1,16 @@
 JDK Wrapper Release Notes
 =========================
 
+0.13.6 - May 17, 2020
+------------------------
+* Use `exec` instead of background executing impl from wrapper and command from impl.
+
+_Details:_ The requirements for background execution of the jdk-wrapper while still allowing signals to propagate to child processes and also allowing child processes to read from stdin when not running in the background proved difficult to navigate.
+
+For example, the latest release works on Mac in both cases, but fails on Ubuntu. Consequently, this release converts the background processes to simply `exec` replacing the running wrapper process and ensuring it works in both cases as long as as the underlying process executed by the wrapper does.
+
+Consequently, the Oracle JDK deprecation warning is printed _before_ execution and causes a three second pause. The same goes for the `jdk-wrapper.sh` comparison and warning.
+
 0.13.5 - May 15, 2020
 ------------------------
 * Remove (fix) quoting around checksum generation and correctly support arguments to `shasum`  -- thanks to [speezepearson](https://github.com/speezepearson)
