@@ -30,6 +30,7 @@ install: true
 script:
 - ./jdkw-impl.sh JDKW_VERBOSE=1 JDKW_DIST=${JDKW_DIST} JDKW_VERSION=${JDKW_VERSION} JDKW_BUILD=${JDKW_BUILD} JDKW_TOKEN=${JDKW_TOKEN} javac -version
 - if [ "$(./jdkw-impl.sh JDKW_DIST=${JDKW_DIST} JDKW_VERSION=${JDKW_VERSION} JDKW_BUILD=${JDKW_BUILD} JDKW_TOKEN=${JDKW_TOKEN} javac -version 2>&1 | grep 'javac' | tail -n 1)" != "javac ${EXPECTED_VERSION}" ]; then exit 1; fi;
+- if [ ./jdkw-impl.sh JDKW_DIST=${JDKW_DIST} JDKW_VERSION=${JDKW_VERSION} JDKW_BUILD=${JDKW_BUILD} JDKW_TOKEN=${JDKW_TOKEN} ./fail.sh 2>&1 ]; then exit 1; fi;
 deploy:
   provider: releases
   api_key:

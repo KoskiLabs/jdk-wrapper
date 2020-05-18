@@ -688,28 +688,15 @@ if [ -n "${JDKW_VERBOSE}" ]; then
   log_out "Executing: $*"
 fi
 
-# Run the command in the backround (with all the trouble that entails)
-# NOTE: Alternatively convert this to an exec if we don't need to output the
-# oracle deprecation at the end; e.g. make that a pre-run warning with delay.
-set -m
-trap 'kill -TERM ${command_pid}' TERM INT
-"$@" &
-command_pid=$!
-fg
-wait ${command_pid} > /dev/null 2>&1
-wait_result=$?
-if [ ${wait_result} -ne 127 ]; then
-  result=${wait_result}
-fi
-trap - TERM INT
-wait ${command_pid} > /dev/null 2>&1
-wait_result=$?
-if [ ${wait_result} -ne 127 ]; then
-  result=${wait_result}
-fi
-
 if [ "${JDKW_DIST}" = "${dist_oracle}" ]; then
   printf "Deprecation Notice: Support for wrapping Oracle JDK may be removed in a future release. Please migrate to Open JDK Zulu or AdoptOpenJDK.\\n"
+  sleep 3
 fi
 
-exit ${result}
+# Execute the provided command
+# NOTE: The requirements proved quite difficult to run this without exec.
+# 1) Exit with the exit status of the child process
+# 2) Allow running the wrapper in the background and terminating the child process
+# 3) Allow the child process to read from standard input when not running in the background
+exec "$@"
+
