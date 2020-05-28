@@ -42,37 +42,49 @@ safe_command() {
 
 checksum() {
   l_file="$1"
-  checksum_exec=""
-  checksum_args=""
+  l_checksum_exec=""
+  l_checksum_args=""
   if command -v sha256sum > /dev/null; then
-    checksum_exec="sha256sum"
+    l_checksum_exec="sha256sum"
   elif command -v shasum > /dev/null; then
-    checksum_exec="shasum"
-    checksum_args="-a 256"
+    l_checksum_exec="shasum"
+    l_checksum_args="-a 256"
   elif command -v sha1sum > /dev/null; then
-    checksum_exec="sha1sum"
+    l_checksum_exec="sha1sum"
   elif command -v md5 > /dev/null; then
-    checksum_exec="md5"
+    l_checksum_exec="md5"
   fi
-  if [ -z "${checksum_exec}" ]; then
+  if [ -z "${l_checksum_exec}" ]; then
     log_err "ERROR: No supported checksum command found!"
     exit 1
   fi
-  ${checksum_exec} ${checksum_args} < "${l_file}"
+  ${l_checksum_exec} ${l_checksum_args} < "${l_file}"
 }
 
 rand() {
   awk 'BEGIN {srand();printf "%d\n", (rand() * 10^8);}'
 }
 
-download_if_needed() {
-  file="$1"
-  path="$2"
-  if [ ! -f "${path}/${file}" ]; then
-    jdkw_url="${JDKW_BASE_URI}/releases/download/${JDKW_RELEASE}/${file}"
-    log_out "Downloading ${file} from ${jdkw_url}"
-    safe_command "curl ${curl_options} -f -k -L -o \"${path}/${file}\" \"${jdkw_url}\""
-    safe_command "chmod +x \"${path}/${file}\""
+obtain_if_needed() {
+  l_file="$1"
+  l_target_path="$2"
+  if [ ! -f "${l_target_path}/${l_file}" ]; then
+    case "${JDKW_BASE_URI}" in
+    http://*|https://*)
+      l_jdkw_url="${JDKW_BASE_URI}/releases/download/${JDKW_RELEASE}/${l_file}"
+      log_out "Downloading ${l_file} from ${jdkw_url}"
+      safe_command "curl ${curl_options} -f -k -L -o \"${l_target_path}/${l_file}\" \"${l_jdkw_url}\""
+      ;;
+    file://*)
+      l_jdkw_path="${JDKW_BASE_URI#file://}/${l_file}"
+      log_out "Copying ${l_file} from ${jdkw_path}"
+      safe_command "cp \"${l_jdkw_path}\" \"${l_target_path}/${l_file}\""
+      ;;
+    *)
+      log_err "ERROR: Unsupported protocol in JDKW_BASE_URI: ${JDKW_BASE_URI}"
+      exit 1
+    esac
+    safe_command "chmod +x \"${l_target_path}/${l_file}\""
   fi
 }
 
@@ -174,8 +186,8 @@ fi
 # Download the jdk wrapper version
 jdkw_impl="jdkw-impl.sh"
 jdkw_wrapper="jdk-wrapper.sh"
-download_if_needed "${jdkw_impl}" "${jdkw_path}"
-download_if_needed "${jdkw_wrapper}" "${jdkw_path}"
+obtain_if_needed "${jdkw_impl}" "${jdkw_path}"
+obtain_if_needed "${jdkw_wrapper}" "${jdkw_path}"
 
 # Check whether this wrapper is the one specified for this version
 jdkw_download="${jdkw_path}/${jdkw_wrapper}"

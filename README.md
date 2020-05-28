@@ -131,6 +131,7 @@ Regardless of how the configuration is specified it supports the following:
 * JDKW_SOURCE : Source url format for download. Optional.
 * JDKW_USERNAME: Username for OTN sign-on. Optional.
 * JDKW_PASSWORD: Password for OTN sign-on. Optional.
+* JDKW_BASE_URI: The source for JDK Wrapper releases. Optional.
 * JDKW_VERBOSE : Log wrapper actions to standard out. Optional.
 
 The default JDK Wrapper release is `latest`.<br/>
@@ -313,6 +314,24 @@ http://artifactory.example.com/jdk/${JDKW_DIST}/jdk-${JDKW_VERSION}_${JDKW_PLATF
 Zulu:
 ```
 http://artifactory.example.com/jdk/${JDKW_DIST}/zulu${JDKW_BUILD}-jdk${JDKW_VERSION}-${JDKW_PLATFORM}.${JDKW_EXTENSION}
+```
+
+You can also vend JDK Wrapper itself from a local repository by setting `JDKW_BASE_URI`. The expectation is that `jdk-wrapper.sh` and
+`jdkw-impl.sh` are found at this location:
+
+${JDKW_BASE_URI}/releases/download/${JDKW_RELEASE}/
+
+Where `JDKW_RELEASE` is the version (e.g. `0.13.6`). You cannot use `latest` as a version in this scenario unless the specified URI also
+responds to latest version translation requests in a Github compatible manner. Like this:
+
+```
+curl -f -k -L -H 'Accept: application/json' http://github.com/KoskiLabs/jdk-wrapper/releases/latest
+```
+
+Results in:
+
+```json
+{"id":26612006,"tag_name":"0.13.6","update_url":"/KoskiLabs/jdk-wrapper/releases/tag/0.13.6","update_authenticity_token":"lIVbHJWx1RNJqrgE8xkmJTLdfXSG2ZeWh10WIDwXdjm5GtiCPm/TWQkAKhqNOQ2ZBIaKLKBW03FseOxUTJgD+w==","delete_url":"/KoskiLabs/jdk-wrapper/releases/tag/0.13.6","delete_authenticity_token":"AAs8/a23Y9l0i83hSPIqxcoYGpsRUBpBSKhrbx6PB/K1AAqT7p89aOhYcNS+VWf2ZrSfLqEoR8vf1elrkd1xWQ==","edit_url":"/KoskiLabs/jdk-wrapper/releases/edit/0.13.6"}
 ```
 
 ### Windows

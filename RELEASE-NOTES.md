@@ -1,6 +1,10 @@
 JDK Wrapper Release Notes
 =========================
 
+0.13.6 - TBD
+------------------------
+* Support `JDKW_BASE_URI` that starts with `file://` which is then obtained with `cp` rather than `curl`.
+
 0.13.6 - May 17, 2020
 ------------------------
 * Use `exec` instead of background executing impl from wrapper and command from impl.
