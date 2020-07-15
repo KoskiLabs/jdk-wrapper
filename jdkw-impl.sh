@@ -25,7 +25,7 @@ log_err() {
 log_out() {
   if [ -n "${JDKW_VERBOSE}" ]; then
     l_prefix=$(date  +'%H:%M:%S')
-    printf "[%s] %s\\n" "${l_prefix}" "$@"
+    printf "[%s] %s\\n" "${l_prefix}" "$@" 1>&2;
   fi
 }
 
@@ -678,7 +678,7 @@ fi
 # Setup the environment
 log_out "Environment:"
 if [ -n "${JDKW_VERBOSE}" ]; then
-  cat "${JDKW_TARGET}/${jdkid}/environment"
+  cat "${JDKW_TARGET}/${jdkid}/environment" 1>&2
 fi
 . "${JDKW_TARGET}/${jdkid}/environment"
 
