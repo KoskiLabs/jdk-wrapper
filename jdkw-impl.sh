@@ -501,6 +501,7 @@ fi
 if [ "${JDKW_JCE}" = "true" ]; then
   jdkid="${jdkid}_jce"
 fi
+jdkid=$(printf '%s' "${jdkid}" | sed 's.[\\/]._.g')
 
 # Check the JDK contents have not changed
 manifest="${JDKW_TARGET}/${jdkid}/manifest.checksum"
@@ -699,4 +700,3 @@ fi
 # 2) Allow running the wrapper in the background and terminating the child process
 # 3) Allow the child process to read from standard input when not running in the background
 exec "$@"
-

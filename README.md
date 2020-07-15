@@ -334,6 +334,14 @@ Results in:
 {"id":26612006,"tag_name":"0.13.6","update_url":"/KoskiLabs/jdk-wrapper/releases/tag/0.13.6","update_authenticity_token":"lIVbHJWx1RNJqrgE8xkmJTLdfXSG2ZeWh10WIDwXdjm5GtiCPm/TWQkAKhqNOQ2ZBIaKLKBW03FseOxUTJgD+w==","delete_url":"/KoskiLabs/jdk-wrapper/releases/tag/0.13.6","delete_authenticity_token":"AAs8/a23Y9l0i83hSPIqxcoYGpsRUBpBSKhrbx6PB/K1AAqT7p89aOhYcNS+VWf2ZrSfLqEoR8vf1elrkd1xWQ==","edit_url":"/KoskiLabs/jdk-wrapper/releases/edit/0.13.6"}
 ```
 
+### File Repository
+
+You can also vend JDK Wrapper itself from the local filesystem by setting `JDKW_BASE_URI` to `file://<PATH>`. The expectation is that `jdk-wrapper.sh` and
+`jdkw-impl.sh` are found at the location specified by `<PATH>`. When vending JDK Wrapper from the file system the default value of `JDKW_RELEASE` becomes
+`snapshot` and not `latest` since there is no way (currently) to resolve `latest` when loading from the filesystem. Furthermore, whenever `JDKW_RELEASE`
+is set to `snapshot` the cached version of JDK Wrapper is always replaced from `JDKW_BASE_URI`. If you have a stable version of JDK Wrapper on the filesystem
+then you should also set `JDKW_RELEASE` to some value (e.g. `current`) to avoid the refresh on each execution of JDK Wrapper.
+
 ### Windows
 
 There are four common ways to execute shell like JDK Wrapper under Windows: Cygwin, Msys2, MinGW and the new Windows Subsystem for Linux (WSL).
