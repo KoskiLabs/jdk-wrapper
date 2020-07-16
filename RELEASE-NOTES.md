@@ -1,9 +1,12 @@
 JDK Wrapper Release Notes
 =========================
 
-0.13.6 - TBD
+0.14.0 - July 15, 2020
 ------------------------
 * Support `JDKW_BASE_URI` that starts with `file://` which is then obtained with `cp` rather than `curl`.
+* Support `JDKW_RELEASE` for special value `snapshot` will always replace the working copy of jdk wrapper.
+* Default `JDKW_RELEASE` to `snapshot` if `JDKW_BASE_URI` starts with `file://` (since `latest` cannot be resolved). If you are loading stable versions from disk, then just specify a constant for `JDKW_RELEASE` (e.g. `current`) to avoid refreshing on each run. 
+* Fixed bad manifest name for Adopt JDK 11 [#46](https://github.com/KoskiLabs/jdk-wrapper/issues/46); this may cause some adopt JDKs to be downloaded again, but it should prevent further manifest miscalculations -- thanks to [cwbriones](https://github.com/cwbriones)
 
 0.13.6 - May 17, 2020
 ------------------------
@@ -11,7 +14,7 @@ JDK Wrapper Release Notes
 
 _Details:_ The requirements for background execution of the jdk-wrapper while still allowing signals to propagate to child processes and also allowing child processes to read from stdin when not running in the background proved difficult to navigate.
 
-For example, the latest release works on Mac in both cases, but fails on Ubuntu. Consequently, this release converts the background processes to simply `exec` replacing the running wrapper process and ensuring it works in both cases as long as as the underlying process executed by the wrapper does.
+For example, the latest release works on Mac in both cases, but fails on Ubuntu. Consequently, this release converts the background processes to simply `exec` replacing the running wrapper process and ensuring it works in both cases as long as the underlying process executed by the wrapper does.
 
 Consequently, the Oracle JDK deprecation warning is printed _before_ execution and causes a three second pause. The same goes for the `jdk-wrapper.sh` comparison and warning.
 
