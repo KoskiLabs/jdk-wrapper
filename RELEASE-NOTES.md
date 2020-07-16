@@ -1,7 +1,7 @@
 JDK Wrapper Release Notes
 =========================
 
-0.14.0 - July 15, 2020
+0.14.0 - July 16, 2020
 ------------------------
 * Support `JDKW_BASE_URI` that starts with `file://` which is then obtained with `cp` rather than `curl`.
 * Support `JDKW_RELEASE` for special value `snapshot` will always replace the working copy of jdk wrapper.
