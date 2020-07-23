@@ -52,7 +52,7 @@ oracle       | `9.0.1`             | [sample](https://raw.githubusercontent.com/
 oracle       | `9.0.4` to current  | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.9.0.4-current.jdkw)
 oracle       | `10.0.1`            | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/oracle.10.0.1-current.jdkw)
 zulu         | any available       | [sample](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/zulu.any.jdkw)
-adopt        | [any of these](https://api.adoptopenjdk.net/v3/info/release_names?release_type=ga&vendor=adoptopenjdk) | [sample openj9](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/adopt.openj9.11.jdkw), [sample hotspot](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/adopt.hotspot.8.jdkw)
+adopt        | [any of these](https://api.adoptopenjdk.net/v3/info/release_names?release_type=ga&page_size=100&version=[11.0,15.0]&vendor=adoptopenjdk) | [sample openj9](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/adopt.openj9.11.jdkw), [sample hotspot](https://raw.githubusercontent.com/KoskiLabs/jdk-wrapper/master/examples/adopt.hotspot.8.jdkw)
 
 Usage
 -----
