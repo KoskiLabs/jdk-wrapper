@@ -31,7 +31,7 @@ log_err() {
 log_out() {
   if [ -n "${JDKW_VERBOSE}" ]; then
     l_prefix=$(date  +'%H:%M:%S')
-    printf "[%s] %s\\n" "${l_prefix}" "$@"
+    printf "[%s] %s\\n" "${l_prefix}" "$@" 1>&2;
   fi
 }
 
